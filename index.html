@@ -127,7 +127,7 @@
       <label class="row"><input type="checkbox" id="showUji"> Titik api 2023–2025 (data uji)</label>
       <select id="ujiYear"><option value="">Semua tahun</option><option>2023</option><option>2024</option><option>2025</option></select>
       <div id="box26" style="display:none">
-        <label class="row"><input type="checkbox" id="show26"> Titik api 2026 sepanjang tahun (<span id="n26">0</span>)</label>
+        <label class="row"><input type="checkbox" id="show26"> Titik api 2026 sepanjang tahun, VIIRS S-NPP (<span id="n26">0</span>)</label>
         <select id="mon26"><option value="">Semua bulan</option></select>
       </div>
       <h2>Wilayah</h2>
@@ -303,7 +303,7 @@ $('kecTop').querySelectorAll('tr.click').forEach(tr => tr.addEventListener('clic
   const D = window.DERET, okt = D.klimatologi.find(c => c.bulan === 10), snpp = T.per_sensor.VIIRS_SNPP || 0;
   const bulan = new Date(T.akhir + 'T00:00:00Z').getUTCMonth() + 1, cl = D.klimatologi.find(c => c.bulan === bulan);
   const nm = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][bulan - 1];
-  $('konteks').innerHTML = `Dalam 7 hari terakhir VIIRS S-NPP saja mendeteksi <b>${fmt(snpp)}</b> titik api. Sebagai pembanding, rata-rata <b>sebulan penuh</b> ${nm} 2015–2025 adalah ${fmt(cl.rata2_2015_2025)} titik (2015: ${fmt(cl.th2015)}, 2019: ${fmt(cl.th2019)}, 2023: ${fmt(cl.th2023)}). ${D.mcd64a1 ? `Area terbakar MODIS tersedia s.d. ${D.mcd64a1.akhir}.` : ''}`;
+  $('konteks').innerHTML = `Dalam 7 hari terakhir VIIRS S-NPP saja mendeteksi <b>${fmt(snpp)}</b> titik api. Sebagai pembanding, rata-rata <b>sebulan penuh</b> ${nm} 2015–2025 adalah ${fmt(cl.rata2_2015_2025)} titik (2015: ${fmt(cl.th2015)}, 2019: ${fmt(cl.th2019)}, 2023: ${fmt(cl.th2023)}). ${D.ada_2026_penuh ? ` Sepanjang 2026 (s.d. ${tgl(T.akhir)}) S-NPP mencatat <b>${fmt(D.tahunan['2026'])}</b> titik api, melampaui setahun penuh 2015 (${fmt(D.tahunan['2015'])}): tahun dengan titik api terbanyak sejak 2015.` : ''} ${D.mcd64a1 ? `Area terbakar MODIS tersedia s.d. ${D.mcd64a1.akhir}.` : ''}`;
 })();
 new Chart($('chHarian'), { type: 'bar', data: { labels: Object.keys(T.harian).map(tgl), datasets: Object.keys(SENSC).map(s => ({ label: s.replace('_', ' '), data: Object.values(T.harian).map(h => h[s] || 0), backgroundColor: SENSC[s] })) },
   options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => fmt(v) } } } } });
@@ -359,7 +359,7 @@ let l26 = null;
 loadScript('data/titik_api_2026.js').then(() => {
   const A = window.TITIK_2026 || []; if (!A.length) return;
   $('box26').style.display = 'block'; $('n26').textContent = fmt(A.length);
-  [...new Set(A.map(p => p[2].slice(0, 7)))].sort().forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; $('mon26').appendChild(o); });
+  [...new Set(A.map(p => p[2].slice(0, 7)))].sort().forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; $('mon26').appendChild(o); }); $('mon26').value = $('mon26').options[$('mon26').options.length - 1].value;
   const draw = () => { if (l26) map.removeLayer(l26); l26 = null; if (!$('show26').checked) return; const m = $('mon26').value;
     l26 = L.featureGroup(A.filter(p => !m || p[2].startsWith(m)).map(p => L.circleMarker([p[1], p[0]], { renderer: ptsRenderer, radius: 1.8, weight: 0, fillColor: '#C2255C', fillOpacity: 0.65 })
       .bindPopup(`<b>Titik api 2026 (${SENS[p[5]] || p[5]})</b><br>${p[2]} · FRP ${fmt(p[4], 1)} MW<br>Kelas bahaya ${MAIN}: ${p[3] ? HAZN[p[3] - 1] : '–'}`))).addTo(map); };
