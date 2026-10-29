@@ -2,7 +2,7 @@
 
 WebGIS PjBL GD4103 Sistem Informasi Geografis 2026 (Teknik Geodesi dan Geomatika ITB), kelompok **K05 · Kelompok 3**, tema karhutla dengan fokus **titik api**.
 
-**Buka WebGIS:** lihat tautan GitHub Pages di bagian *About* repositori ini.
+**Buka WebGIS:** https://hakam120.github.io/webgis-titik-api-papua-selatan/
 
 ## Isi
 
