@@ -13,16 +13,18 @@ Write-Host "WebGIS berjalan di http://localhost:$Port/  (Ctrl+C untuk berhenti)"
 try {
     while ($listener.IsListening) {
         $ctx = $listener.GetContext()
-        $rel = [Uri]::UnescapeDataString($ctx.Request.Url.AbsolutePath.TrimStart('/'))
-        if ([string]::IsNullOrEmpty($rel)) { $rel = 'index.html' }
-        $path = [IO.Path]::GetFullPath((Join-Path $root $rel))
-        if ($path.StartsWith($root) -and (Test-Path $path -PathType Leaf)) {
-            $bytes = [IO.File]::ReadAllBytes($path)
-            $ext = [IO.Path]::GetExtension($path).ToLower()
-            $ctx.Response.ContentType = $(if ($types.ContainsKey($ext)) { $types[$ext] } else { 'application/octet-stream' })
-            $ctx.Response.ContentLength64 = $bytes.Length
-            $ctx.Response.OutputStream.Write($bytes, 0, $bytes.Length)
-        } else { $ctx.Response.StatusCode = 404 }
-        $ctx.Response.Close()
+        try {   # satu permintaan gagal (mis. koneksi diputus peramban) tidak menghentikan server
+            $rel = [Uri]::UnescapeDataString($ctx.Request.Url.AbsolutePath.TrimStart('/'))
+            if ([string]::IsNullOrEmpty($rel)) { $rel = 'index.html' }
+            $path = [IO.Path]::GetFullPath((Join-Path $root $rel))
+            if ($path.StartsWith($root) -and (Test-Path $path -PathType Leaf)) {
+                $bytes = [IO.File]::ReadAllBytes($path)
+                $ext = [IO.Path]::GetExtension($path).ToLower()
+                $ctx.Response.ContentType = $(if ($types.ContainsKey($ext)) { $types[$ext] } else { 'application/octet-stream' })
+                $ctx.Response.ContentLength64 = $bytes.Length
+                if ($ctx.Request.HttpMethod -ne 'HEAD') { $ctx.Response.OutputStream.Write($bytes, 0, $bytes.Length) }
+            } else { $ctx.Response.StatusCode = 404 }
+        } catch { Write-Host "  galat permintaan $($ctx.Request.Url.AbsolutePath): $($_.Exception.Message)" }
+        try { $ctx.Response.Close() } catch { }
     }
 } finally { $listener.Stop() }

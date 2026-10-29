@@ -60,6 +60,18 @@
   .leaflet-popup-content table td { padding:2px 4px; border:0; }
   .mapnote { background:rgba(255,255,255,.92); padding:6px 9px; border-radius:6px; font-size:12px; box-shadow:0 1px 4px rgba(0,0,0,.2); max-width:260px; }
   a { color:var(--ember); }
+  .thrgrid { display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; margin-top:6px; }
+  .thrgrid label { display:flex; align-items:center; gap:3px; font-size:12px; }
+  .thrgrid input { width:100%; padding:3px; font:inherit; font-size:12px; border:1px solid var(--line); border-radius:4px; }
+  .dl { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; }
+  .dl button.ghost { width:auto; margin-top:0; padding:7px 10px; font-size:12.5px; }
+  .dl select { width:auto; flex:1; }
+  button.ghost:disabled { opacity:.45; cursor:default; }
+  .slider span.v.wide { min-width:90px; }
+  .slider:has(.wide) { grid-template-columns:1fr 110px; }
+  .info-btn { display:block; width:30px; height:30px; line-height:30px; text-align:center; font-size:17px; background:#fff; color:#1E1B18; text-decoration:none; }
+  .info-btn.on { background:#D9480F; color:#fff; }
+  details summary { cursor:pointer; color:#D9480F; margin-top:4px; }
   #side canvas { max-width:100%; }
   .chart { position:relative; width:100%; }
   @media (max-width:820px) {
@@ -105,6 +117,7 @@
       <select id="day7"><option value="">Semua tanggal</option></select>
       <div class="chips" id="sens7"></div>
       <div class="legend" id="leg7"></div>
+      <button class="ghost" id="dl7">Unduh titik 7 hari (GeoJSON)</button>
       <h2>Di mana titik api terjadi?</h2>
       <h3>Fungsi kawasan hutan</h3><div id="khBars"></div>
       <h3>Perizinan</h3><div id="ksBars"></div>
@@ -134,28 +147,57 @@
       <label class="row"><input type="checkbox" id="showUji"> Titik api 2023–2025 (data uji)</label>
       <select id="ujiYear"><option value="">Semua tahun</option><option>2023</option><option>2024</option><option>2025</option></select>
       <div id="box26" style="display:none">
-        <label class="row"><input type="checkbox" id="show26"> Titik api 2026 sepanjang tahun, VIIRS S-NPP (<span id="n26">0</span>)</label>
-        <select id="mon26"><option value="">Semua bulan</option></select>
-      </div>
-      <h2>Wilayah</h2>
+        <h2>Animasi titik api 2026</h2>
+        <label class="row"><input type="checkbox" id="show26"> Titik api 2026, VIIRS S-NPP (<span id="n26">0</span> titik)</label>
+        <div class="slider"><span id="t26lab">–</span><span class="v wide" id="t26n">0</span></div>
+        <input type="range" id="t26" min="0" max="0" value="0">
+        <div class="dl"><button class="ghost mini" id="t26play">▶ Putar</button><select id="t26win"><option value="7">Jendela 7 hari</option><option value="30">Jendela 30 hari</option><option value="all">Kumulatif sejak 1 Jan</option></select></div>
+        <button class="ghost" id="t26dl">Unduh titik yang tampil (CSV)</button>
+      </div>      <h2>Wilayah</h2>
       <select id="kabSel"><option value="">Seluruh provinsi</option></select>
       <select id="kecSel" style="margin-top:6px"><option value="">Cari kecamatan…</option></select>
     </section>
 
     <section class="tab" id="model">
-      <h2>Hitung ulang model di peramban</h2>
-      <p class="note" style="margin-top:0">Grid 1 km dari 12 kelas parameter 100 m. Ubah bobot AHP atau pilih parameter Rasio Frekuensi, lalu tekan <b>Hitung ulang</b>. Kelas dibagi mengikuti proporsi luas model FR agar dapat dibandingkan.</p>
-      <select id="ofMode"><option value="AHP">AHP (bobot dapat diubah)</option><option value="FR">Rasio Frekuensi (pilih parameter)</option></select>
+      <h2>Pemodelan on-the-fly</h2>
+      <p class="note" style="margin-top:0">Grid 1 km dari parameter 100 m. Ubah masukan lalu tekan <b>Hitung ulang</b>: peta bahaya, validasi, dan dampak dihitung ulang langsung di peramban tanpa perangkat lunak SIG.</p>
+      <h3>1 · Model dan bobot</h3>
+      <select id="ofMode"><option value="RF">Random Forest (60 pohon, dijalankan di peramban)</option><option value="AHP">AHP (bobot parameter dapat diubah)</option><option value="FR">Rasio Frekuensi (pilih parameter)</option></select>
       <div id="ofControls"><p class="note">Memuat grid…</p></div>
-      <button class="act" id="ofRun">Hitung ulang</button>
-      <button class="ghost" id="ofReset">Kembalikan ke bobot awal</button>
-      <div class="kpis">
-        <div class="kpi"><b id="kAuc">–</b><small>AUC uji 2023–2025 (grid 1 km)</small></div>
-        <div class="kpi"><b id="kHot">–</b><small>sel titik api uji di kelas tinggi–sangat tinggi</small></div>
-        <div class="kpi"><b id="kArea">–</b><small>luas kelas tinggi–sangat tinggi</small></div>
-        <div class="kpi"><b id="k7z">–</b><small>titik api 7 hari terakhir di kelas tinggi–sangat tinggi</small></div>
+      <h3>2 · Skenario iklim</h3>
+      <select id="ofRain"><option value="0">Normal (iklim rata-rata Agu–Nov 2015–2022)</option><option value="2026">Kemarau 2026 (anomali terukur per sel)</option><option value="custom">Atur sendiri (perubahan seragam)</option></select>
+      <p class="note" id="scenNote" style="margin:4px 0 0"></p>
+      <div id="rainBox" style="display:none"><div class="slider"><span>Curah hujan</span><span class="v" id="rainV">0%</span></div><input type="range" id="rainPct" min="-80" max="50" value="-30">
+        <div class="cz" data-k="suhu"><div class="slider"><span>Suhu udara</span><span class="v" id="tV"></span></div><input type="range" id="tDel" min="-1" max="3" step="0.1" value="1"></div>
+        <div class="cz" data-k="kelembapan"><div class="slider"><span>Kelembapan relatif</span><span class="v" id="hV"></span></div><input type="range" id="hDel" min="-20" max="10" step="1" value="-5"></div>
+        <div class="cz" data-k="fwi"><div class="slider"><span>Fire Weather Index</span><span class="v" id="fV"></span></div><input type="range" id="fPct" min="-50" max="150" step="5" value="30"></div></div>
+      <h3>3 · Ambang kelas</h3>
+      <select id="ofThr"><option value="model">Proporsi luas kelas model 100 m</option><option value="kuantil">Kuantil (5 kelas sama luas)</option><option value="interval">Interval sama</option><option value="manual">Manual (% luas tiap kelas)</option></select>
+      <div id="thrBox" style="display:none"><div class="thrgrid" id="thrInputs"></div><p class="note" style="margin-top:2px">% luas kelas 1 (sangat rendah) sampai 5 (sangat tinggi); dinormalisasi otomatis.</p></div>
+      <h3>4 · Data kejadian untuk validasi</h3>
+      <select id="ofVal"><option value="uji">Titik api 2023–2025 (data uji)</option><option value="t26">Titik api 2026 (VIIRS S-NPP, pilih tanggal)</option><option value="b26">Area terbakar 2026 (MODIS, ≥ 10% sel)</option></select>
+      <div id="valDate" style="display:none">
+        <div class="slider"><span>Dari</span><span class="v wide" id="d0v"></span></div><input type="range" id="d0" min="0" max="0" value="0">
+        <div class="slider"><span>Sampai</span><span class="v wide" id="d1v"></span></div><input type="range" id="d1" min="0" max="0" value="0">
       </div>
-      <p class="note">Hasil on-the-fly bersifat indikatif (1 km). Produk resmi: raster 100 m pada Luaran 2.</p>
+      <button class="act" id="ofRun">Hitung ulang</button>
+      <button class="ghost" id="ofReset">Kembalikan ke pengaturan awal</button>
+      <div class="kpis">
+        <div class="kpi"><b id="kAuc">–</b><small>AUC terhadap data kejadian terpilih (grid 1 km)</small></div>
+        <div class="kpi"><b id="kHot">–</b><small>sel berkejadian di kelas tinggi–sangat tinggi</small></div>
+        <div class="kpi"><b id="kArea">–</b><small>luas kelas tinggi–sangat tinggi</small></div>
+        <div class="kpi"><b id="kPop">–</b><small>penduduk di kelas tinggi–sangat tinggi</small></div>
+      </div>
+      <h3>Dampak per kabupaten (hasil hitung ulang)</h3>
+      <table id="ofImpact"><tr><td class="note">Tekan Hitung ulang.</td></tr></table>
+      <h3>Unduh hasil</h3>
+      <div class="dl">
+        <button class="ghost" id="dlTif" disabled>GeoTIFF kelas (EPSG:3857)</button>
+        <button class="ghost" id="dlPng" disabled>Gambar peta (PNG)</button>
+        <button class="ghost" id="dlCsv" disabled>Tabel dampak (CSV)</button>
+        <button class="ghost" id="dlJson" disabled>Pengaturan & hasil (JSON)</button>
+      </div>
+      <p class="note">Hasil on-the-fly bersifat indikatif (1 km). Produk resmi: raster 100 m pada Luaran 2. <span id="rfInfo"></span></p>
     </section>
 
     <section class="tab" id="statistik">
@@ -179,8 +221,9 @@
       <h2>Tentang WebGIS ini</h2>
       <p>WebGIS untuk PjBL GD4103 Sistem Informasi Geografis 2026 (Teknik Geodesi dan Geomatika ITB), tema karhutla, fokus <b>titik api</b> di Provinsi Papua Selatan (Merauke, Mappi, Boven Digoel, Asmat).</p>
       <p><b>Data terkini.</b> Titik api 7 hari terakhir dari NASA FIRMS NRT (VIIRS S-NPP, NOAA-20, NOAA-21, MODIS Terra/Aqua) diunduh ulang otomatis setiap 6 jam oleh GitHub Actions, diberi atribut kecamatan, kelas bahaya, gambut, fungsi kawasan, dan perizinan.</p>
-      <p><b>Model.</b> 12 parameter: tutupan lahan, curah hujan Agu–Nov, fraksi gambut, frekuensi genangan, jarak ke permukiman, jalan, sungai, kehilangan hutan 2013–2022, fungsi kawasan hutan, perizinan, elevasi, kemiringan. Tiga model: Rasio Frekuensi, AHP, Random Forest. Latih 2015–2022, uji 2023–2025 dan 2026.</p>
-      <p><b>Sumber data.</b> NASA FIRMS; MODIS MCD64A1 (Microsoft Planetary Computer); BIG Satu Peta (gambut FEG, KHG, rawan karhutla KLHK, kawasan hutan, PBPH, izin sawit, PIPPIB, mangrove, sawah, kecamatan); ESA WorldCover 2021; Esri/IO LULC; Hansen GFC v1.13; JRC Global Surface Water; CHIRPS v3; Copernicus DEM; Peat-ML; GHSL 2025; WorldPop 2020 + Sensus Penduduk 2020 (BPS); OpenStreetMap; geoBoundaries.</p>
+      <p><b>Model.</b> 15 parameter: tutupan lahan, curah hujan Agu–Nov, suhu udara, kelembapan relatif, Fire Weather Index, fraksi gambut, frekuensi genangan, jarak ke permukiman, jalan, sungai, kehilangan hutan 2013–2022, fungsi kawasan hutan, perizinan, elevasi dan kemiringan (DEMNAS). Tiga model: Rasio Frekuensi, AHP, Random Forest. Latih 2015–2022, uji 2023–2025 dan 2026.</p>
+      <p><b>Nilai tambah.</b> (1) Pemodelan on-the-fly di peramban: Random Forest, AHP dengan bobot yang dapat diubah, atau Rasio Frekuensi dengan pilihan parameter; skenario iklim (normal, kemarau 2026 dengan anomali hujan, suhu, kelembapan, dan FWI terukur per sel, atau perubahan seragam yang diatur sendiri); ambang kelas (proporsi model, kuantil, interval sama, manual); validasi terhadap data kejadian dan rentang tanggal pilihan; dampak per kabupaten langsung. (2) Animasi waktu titik api 2026. (3) Info lokasi: tombol ⓘ lalu klik peta. (4) Unduh hasil: GeoTIFF, PNG, CSV, JSON, dan titik api terpilih.</p>
+      <p><b>Sumber data.</b> NASA FIRMS; MODIS MCD64A1 (Microsoft Planetary Computer); BIG Satu Peta (gambut FEG, KHG, rawan karhutla KLHK, kawasan hutan, PBPH, izin sawit, PIPPIB, mangrove, sawah, kecamatan); ESA WorldCover 2021; Esri/IO LULC; Hansen GFC v1.13; JRC Global Surface Water; CHIRPS v3; Copernicus ERA5-Land dan CEMS Fire Weather Index; DEMNAS (BIG, Ina-Geoportal; celah pesisir diisi Copernicus DEM); Peat-ML; GHSL 2025; Meta HRSL 2020 + Sensus Penduduk 2020 (BPS); Google Open Buildings v3; OpenStreetMap; geoBoundaries.</p>
       <p><b>Unduh.</b> <a href="unduh/ringkasan_model_v2.json" download>Ringkasan model (JSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kabupaten.geojson" download>Dampak per kabupaten (GeoJSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kecamatan.geojson" download>Dampak per kecamatan (GeoJSON)</a> · <a href="unduh/tabel_dampak_v2_per_kecamatan.csv" download>Tabel kecamatan (CSV)</a></p>
       <p class="note">Tim: Rizki Maulana (15123070), Muhammad Hakam Al-Asyam (15123044), Nurrachman Alwy Sumintardja (15123100), Hafzulh Usmu Alfalah (12823048), Fauzan Rizki (12823030).</p>
       <p class="note">Titik api adalah indikasi, bukan konfirmasi kebakaran di lapangan. Interpretasi kode fungsi kawasan hutan bersumber dari atribut Satu Peta. Produk ini untuk keperluan akademik.</p>
@@ -240,7 +283,7 @@ function kecPopup(p) {
   <tr><td>Luas</td><td>${fmt(p.luas_ha / 100)} km²</td></tr>
   <tr><td>Zona bahaya tinggi–sangat tinggi</td><td><b>${fmt(p.persen_tinggi_sangat_tinggi, 1)}%</b></td></tr>
   <tr><td>Penduduk di zona tinggi</td><td>${fmt(p.penduduk_zona_tinggi)} dari ${fmt(p.penduduk)} jiwa</td></tr>
-  <tr><td>Bangunan (OSM) di zona tinggi</td><td>${fmt(p.bangunan_osm_zona_tinggi)}</td></tr>
+  <tr><td>Bangunan di zona tinggi</td><td>${fmt(p.bangunan_zona_tinggi)}</td></tr>
   <tr><td>Titik api 7 hari terakhir*</td><td><b>${fmt(p.titik_api_7hari)}</b></td></tr>
   <tr><td>Area terbakar 2026 (MODIS)</td><td>${fmt(p.terbakar_2026_ha)} ha</td></tr>
   <tr><td>Kehilangan hutan 2024–2025</td><td>${fmt(p.kehilangan_hutan_2024_2025_ha)} ha</td></tr></table>
@@ -384,16 +427,35 @@ async function drawUji() {
     .bindPopup(`<b>Titik api VIIRS S-NPP</b><br>${p[2]} · FRP ${fmt(p[4], 1)} MW<br>Kelas bahaya ${MAIN}: ${p[3] ? HAZN[p[3] - 1] : '–'}`))).addTo(map);
 }
 ['showUji', 'ujiYear'].forEach(id => $(id).addEventListener('change', drawUji));
-let l26 = null;
+let l26 = null, t26timer = null, T26D = [];
 loadScript('data/titik_api_2026.js').then(() => {
   const A = window.TITIK_2026 || []; if (!A.length) return;
   $('box26').style.display = 'block'; $('n26').textContent = fmt(A.length);
-  [...new Set(A.map(p => p[2].slice(0, 7)))].sort().forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; $('mon26').appendChild(o); }); $('mon26').value = $('mon26').options[$('mon26').options.length - 1].value;
-  const draw = () => { if (l26) map.removeLayer(l26); l26 = null; if (!$('show26').checked) return; const m = $('mon26').value;
-    l26 = L.featureGroup(A.filter(p => !m || p[2].startsWith(m)).map(p => L.circleMarker([p[1], p[0]], { renderer: ptsRenderer, radius: 1.8, weight: 0, fillColor: '#C2255C', fillOpacity: 0.65 })
-      .bindPopup(`<b>Titik api 2026 (${SENS[p[5]] || p[5]})</b><br>${p[2]} · FRP ${fmt(p[4], 1)} MW<br>Kelas bahaya ${MAIN}: ${p[3] ? HAZN[p[3] - 1] : '–'}`))).addTo(map); };
-  ['show26', 'mon26'].forEach(id => $(id).addEventListener('change', draw));
+  const last = A.reduce((m, p) => p[2] > m ? p[2] : m, '2026-01-01');
+  for (let d = new Date('2026-01-01T00:00:00Z'); d.toISOString().slice(0, 10) <= last; d = new Date(d.getTime() + 864e5)) T26D.push(d.toISOString().slice(0, 10));
+  $('t26').max = T26D.length - 1; $('t26').value = T26D.length - 1;
+  const win = () => { const e = +$('t26').value, w = $('t26win').value, s = w === 'all' ? 0 : Math.max(0, e - (+w) + 1); return [T26D[s], T26D[e]]; };
+  const sel = () => { const [a, b] = win(); return A.filter(p => p[2] >= a && p[2] <= b); };
+  const draw = () => {
+    const [a, b] = win(), pts = sel(); $('t26lab').textContent = a === b ? tgl(a) : `${tgl(a)} – ${tgl(b)} 2026`; $('t26n').textContent = fmt(pts.length);
+    if (l26) map.removeLayer(l26); l26 = null; if (!$('show26').checked) return;
+    l26 = L.featureGroup(pts.map(p => L.circleMarker([p[1], p[0]], { renderer: ptsRenderer, radius: 1.9, weight: 0, fillColor: '#C2255C', fillOpacity: 0.7 })
+      .bindPopup(`<b>Titik api 2026 (${SENS[p[5]] || p[5]})</b><br>${p[2]} · FRP ${fmt(p[4], 1)} MW<br>Kelas bahaya ${MAIN}: ${p[3] ? HAZN[p[3] - 1] : '–'}`))).addTo(map);
+  };
+  const stop = () => { clearInterval(t26timer); t26timer = null; $('t26play').textContent = '▶ Putar'; };
+  $('t26play').addEventListener('click', () => {
+    if (t26timer) { stop(); return; }
+    if (!$('show26').checked) { $('show26').checked = true; }
+    if (+$('t26').value >= T26D.length - 1) $('t26').value = Math.max(0, T26D.indexOf('2026-06-01'));
+    $('t26play').textContent = '❚❚ Jeda';
+    t26timer = setInterval(() => { const v = +$('t26').value + 3; if (v > T26D.length - 1) { $('t26').value = T26D.length - 1; draw(); stop(); return; } $('t26').value = v; draw(); }, 450);
+  });
+  $('t26').addEventListener('input', draw); ['show26', 't26win'].forEach(id => $(id).addEventListener('change', draw));
+  $('t26dl').addEventListener('click', () => { const pts = sel(), [a, b] = win(); const rows = ['tanggal,lintang,bujur,frp_mw,sensor,kelas_bahaya_' + MAIN].concat(pts.map(p => [p[2], p[1], p[0], p[4], SENS[p[5]] || p[5], p[3] ? HAZN[p[3] - 1] : ''].join(',')));
+    saveBlob(`titik_api_${a}_${b}.csv`, new Blob([rows.join('\n')], { type: 'text/csv' })); });
+  draw();
 }).catch(() => {});
+$('dl7').addEventListener('click', () => saveBlob(`titik_api_7hari_${T.akhir}.geojson`, new Blob([JSON.stringify(window.TITIK7)], { type: 'application/geo+json' })));
 
 // ---------- tab ----------
 let statsDone = false, modelReady = false;
@@ -401,7 +463,7 @@ document.querySelectorAll('nav button').forEach(b => b.addEventListener('click',
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
   document.querySelectorAll('section.tab').forEach(s => s.classList.toggle('on', s.id === b.dataset.t));
   if (b.dataset.t === 'statistik' && !statsDone) { statsDone = true; drawStats(); }
-  if (b.dataset.t === 'model' && !modelReady) { modelReady = true; loadScript('data/grid_1km.js').then(initModel); }
+  if (b.dataset.t === 'model' && !modelReady) { modelReady = true; loadGrid().then(initModel); }
 }));
 
 // ---------- statistik ----------
@@ -426,63 +488,208 @@ function drawStats() {
   $('kecImpact').querySelectorAll('tr.click').forEach(tr => tr.addEventListener('click', () => zoomKec(+tr.dataset.id)));
 }
 
-// ---------- pemodelan on-the-fly (grid 1 km) ----------
-let G, NL, STRIDE, N, RAW, PAR, W0, FRLUT, propFR, ctl;
-function initModel() {
-  G = window.GRID; NL = G.keys.length; STRIDE = NL + 2; N = G.w * G.h; RAW = Uint8Array.from(atob(G.data), c => c.charCodeAt(0));
-  PAR = R.parameter; W0 = R.AHP.bobot.slice();
-  FRLUT = PAR.map(p => R.rasio_frekuensi.filter(r => r.parameter === p.nama).sort((a, b) => a.kelas - b.kelas).map(r => r.FR));
-  propFR = R.validasi_per_kelas.filter(c => c.Model === 'FR' && c.Uji === 'FIRMS_uji_2023_2025').sort((a, b) => a.Kelas - b.Kelas).map(c => c.PersenLuas / 100);
-  ctl = $('ofControls'); buildControls();
+// ---------- grid 1 km multi-lapis (data/grid3.js) dan RF ringan (data/rf_web.js) ----------
+let GD = null, gridLoading = null;
+function loadGrid() {
+  if (GD) return Promise.resolve(GD);
+  if (gridLoading) return gridLoading;
+  gridLoading = Promise.all([loadScript('data/grid3.js'), loadScript('data/rf_web.js')]).then(() => {
+    const g = window.GRID3, b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)), mask = b64(g.mask), NN = g.w * g.h;
+    const idx = new Int32Array(NN).fill(-1), cells = new Int32Array(g.n); let k = 0;
+    for (let i = 0; i < NN; i++) if (mask[i >> 3] & (1 << (i & 7))) { idx[i] = k; cells[k++] = i; }
+    const F = {}; for (const [n, f] of Object.entries(g.fields)) { const u = b64(f.d); F[n] = f.t === 'u16' ? new Uint16Array(u.buffer) : u; }
+    const my = la => Math.log(Math.tan(Math.PI / 4 + la * Math.PI / 360)), y0 = my(g.bounds[1][0]), y1 = my(g.bounds[0][0]), dLon = (g.bounds[1][1] - g.bounds[0][1]) / g.w;
+    const area = new Float32Array(g.n);
+    for (let j = 0; j < g.n; j++) { const r = Math.floor(cells[j] / g.w), m = y0 - (r + 0.5) / g.h * (y0 - y1), lat = (2 * Math.atan(Math.exp(m)) - Math.PI / 2) * 180 / Math.PI, c = Math.cos(lat * Math.PI / 180); area[j] = dLon * 111.32 * c * dLon * c * 110.57; }
+    const toCell = (lon, lat) => { const xx = Math.floor((lon - g.bounds[0][1]) / (g.bounds[1][1] - g.bounds[0][1]) * g.w), yy = Math.floor((y0 - my(lat)) / (y0 - y1) * g.h); return (xx < 0 || yy < 0 || xx >= g.w || yy >= g.h) ? -1 : idx[yy * g.w + xx]; };
+    GD = { g, idx, cells, F, area, toCell, my, y0, y1, n: g.n, RW: window.RFWEB, nodes: b64(window.RFWEB.simpul) };
+    return GD;
+  });
+  return gridLoading;
 }
+const binOf = (v, ed) => { let lo = 0, hi = ed.length; while (lo < hi) { const m = (lo + hi) >> 1; if (ed[m] < v) lo = m + 1; else hi = m; } return lo; };
+const clsOf = (v, br) => { let c = 0; while (c < br.length && v >= br[c]) c++; return c + 1; };
+function rfPredict(x) {
+  const nodes = GD.nodes, off = GD.RW.offset, nt = off.length - 1; let s = 0;
+  for (let t = 0; t < nt; t++) {
+    let nd = 0; const base = off[t];
+    for (;;) { const o = (base + nd) * 7, f = nodes[o] > 127 ? nodes[o] - 256 : nodes[o]; if (f < 0) { s += nodes[o + 6]; break; } nd = x[f] <= nodes[o + 1] ? (nodes[o + 2] | (nodes[o + 3] << 8)) : (nodes[o + 4] | (nodes[o + 5] << 8)); }
+  }
+  return s / (255 * nt);
+}
+// parameter iklim yang ikut berubah dalam skenario: kunci parameter -> nama medan grid web (u16; x100 kecuali hujan)
+const CLIM = { curah_hujan: 'rain', suhu: 'suhu', kelembapan: 'rh', fwi: 'fwi' };
+const climKeys = () => Object.keys(CLIM).filter(k => GD.F[CLIM[k]] && PAR.some(p => p.kunci === k));
+function climOf(k, j) {
+  const F = GD.F, sc = $('ofRain').value;
+  if (k === 'curah_hujan') {
+    const r = F.rain[j];
+    if (sc === '2026' && F.anom26 && F.anom26[j] > 0) return Math.max(0, r * (1 + (F.anom26[j] - 1000) / 100));
+    if (sc === 'custom') return Math.max(0, r * (1 + +$('rainPct').value / 100));
+    return r;
+  }
+  const f = CLIM[k], v = F[f][j] / 100, a = F['a26_' + f];
+  if (sc === '2026') return a && a[j] > 0 ? Math.max(0, v + (a[j] - 10000) / 100) : v;
+  if (sc === 'custom') return k === 'suhu' ? v + +$('tDel').value : k === 'kelembapan' ? Math.min(100, Math.max(0, v + +$('hDel').value)) : Math.max(0, v * (1 + +$('fPct').value / 100));
+  return v;
+}
+function scenText() {
+  const sc = $('ofRain').value, I = GD && GD.g.iklim, B = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'], ks = GD && PAR ? climKeys() : ['curah_hujan'];
+  const nm = { curah_hujan: 'curah hujan', suhu: 'suhu', kelembapan: 'kelembapan', fwi: 'FWI' };
+  if (sc === '0') return `Parameter iklim (${ks.map(k => nm[k]).join(', ')}) memakai rata-rata Agustus–November 2015–2022.`;
+  if (sc === '2026') return 'Nilai normal tiap sel ditambah anomali 2026 yang terukur: curah hujan CHIRPS Agu–Sep' + (I && ks.includes('suhu') ? `, suhu & kelembapan ERA5-Land Agu–${B[I.era5land_bulan_2026_terakhir]}` : '') + (I && ks.includes('fwi') ? `, FWI CEMS Agu–${B[I.fwi_bulan_2026_terakhir]}` : '') + ' 2026 (terhadap 2015–2025).';
+  return 'Perubahan yang sama diterapkan ke semua sel. FWI tidak dihitung ulang dari suhu/hujan, jadi atur terpisah.';
+}
+
+// ---------- kontrol pemodelan ----------
+let PAR, W0, FRLUT, ctl, D26 = [], lastRun = null;
+function baseProps(mode) { const m = GD.F['m_' + mode], c = [0, 0, 0, 0, 0]; for (let j = 0; j < GD.n; j++) if (m[j]) c[m[j] - 1]++; const s = c.reduce((a, b) => a + b, 0) || 1; return c.map(x => x / s); }
+function initModel() {
+  PAR = R.parameter; W0 = R.AHP.bobot.slice(); ctl = $('ofControls');
+  FRLUT = PAR.map(p => R.rasio_frekuensi.filter(r => r.parameter === p.nama).sort((a, b) => a.kelas - b.kelas).map(r => r.FR));
+  const A = window.TITIK_2026 || [];
+  if (A.length) { const last = A.reduce((m, p) => p[2] > m ? p[2] : m, '2026-01-01'); for (let d = new Date('2026-01-01T00:00:00Z'); d.toISOString().slice(0, 10) <= last; d = new Date(d.getTime() + 864e5)) D26.push(d.toISOString().slice(0, 10)); }
+  for (const id of ['d0', 'd1']) { $(id).max = Math.max(0, D26.length - 1); }
+  $('d0').value = Math.max(0, D26.indexOf('2026-07-01')); $('d1').value = D26.length - 1; showDates();
+  $('rfInfo').textContent = `RF peramban: ${GD.RW.pohon} pohon, kedalaman ≤ ${GD.RW.kedalaman_maks}, AUC sampel uji ${fmt(GD.RW.AUC_sampel_uji, 3)} (RF 100 m: ${fmt(R.RF.AUC_sampel_uji, 3)}).`;
+  document.querySelectorAll('#rainBox .cz').forEach(d => d.style.display = climKeys().includes(d.dataset.k) ? '' : 'none'); $('scenNote').textContent = scenText();
+  buildControls(); buildThr(); run();
+}
+function showDates() { $('d0v').textContent = D26.length ? tgl(D26[+$('d0').value]) : '–'; $('d1v').textContent = D26.length ? tgl(D26[+$('d1').value]) : '–'; }
 function buildControls() {
   const mode = $('ofMode').value;
+  if (mode === 'RF') { ctl.innerHTML = `<p class="note">Random Forest memakai ${PAR.length} parameter apa adanya; ubah skenario iklim, ambang kelas, dan data validasi di bawah. Bobot implisit tertinggi: ${R.RF.kepentingan.slice().sort((a, b) => b.Gini - a.Gini).slice(0, 3).map(x => x.Parameter.replace(/ \(.*\)/, '')).join(', ')}.</p>`; return; }
   ctl.innerHTML = PAR.map((p, i) => mode === 'AHP'
     ? `<div class="slider"><span>${p.nama}</span><span class="v" id="wv${i}">${fmt(W0[i], 3)}</span></div><input type="range" min="0" max="100" value="${Math.round(W0[i] * 300)}" data-i="${i}" class="w">`
     : `<label class="row"><input type="checkbox" checked data-i="${i}" class="f"> ${p.nama}</label>`).join('');
   ctl.querySelectorAll('input.w').forEach(s => s.addEventListener('input', () => $('wv' + s.dataset.i).textContent = fmt(s.value / 300, 3)));
 }
-$('ofMode').addEventListener('change', () => G && buildControls());
-$('ofReset').addEventListener('click', () => { if (!G) return; $('ofMode').value = 'AHP'; buildControls(); run(); });
-$('ofRun').addEventListener('click', () => G && run());
-function run() {
-  const mode = $('ofMode').value;
+function buildThr() { const p = baseProps($('ofMode').value === 'RF' ? 'RF' : $('ofMode').value); $('thrInputs').innerHTML = HAZN.map((n, i) => `<label><span class="sw" style="background:${HAZ[i]}"></span><input type="number" min="1" max="96" step="1" id="thr${i}" value="${Math.round(p[i] * 100)}"></label>`).join(''); }
+function thrProps() { const v = HAZN.map((n, i) => Math.max(0.5, +$('thr' + i).value || 0)), s = v.reduce((a, b) => a + b, 0); return v.map(x => x / s); }
+$('ofMode').addEventListener('change', () => { if (!GD) return; buildControls(); buildThr(); });
+$('ofRain').addEventListener('change', () => { $('rainBox').style.display = $('ofRain').value === 'custom' ? 'block' : 'none'; $('scenNote').textContent = scenText(); });
+const sgn = v => (v > 0 ? '+' : '') + fmt(v, v % 1 ? 1 : 0);
+const sliderTxt = () => { $('rainV').textContent = sgn(+$('rainPct').value) + '%'; $('tV').textContent = sgn(+$('tDel').value) + ' °C'; $('hV').textContent = sgn(+$('hDel').value) + ' poin %'; $('fV').textContent = sgn(+$('fPct').value) + '%'; };
+['rainPct', 'tDel', 'hDel', 'fPct'].forEach(id => $(id).addEventListener('input', sliderTxt)); sliderTxt();
+$('scenNote').textContent = scenText();
+$('ofThr').addEventListener('change', () => $('thrBox').style.display = $('ofThr').value === 'manual' ? 'block' : 'none');
+$('ofVal').addEventListener('change', () => $('valDate').style.display = $('ofVal').value === 't26' ? 'block' : 'none');
+['d0', 'd1'].forEach(id => $(id).addEventListener('input', () => { if (+$('d0').value > +$('d1').value) { if (id === 'd0') $('d1').value = $('d0').value; else $('d0').value = $('d1').value; } showDates(); }));
+$('ofRun').addEventListener('click', () => GD && run());
+$('ofReset').addEventListener('click', () => { if (!GD) return; $('ofMode').value = 'RF'; $('ofRain').value = '0'; $('rainBox').style.display = 'none'; $('scenNote').textContent = scenText(); $('ofThr').value = 'model'; $('thrBox').style.display = 'none'; $('ofVal').value = 'uji'; $('valDate').style.display = 'none'; buildControls(); buildThr(); run(); });
+
+function computeIndex(mode) {
+  const n = GD.n, out = new Float32Array(n), scen = $('ofRain').value !== '0', SK = scen ? climKeys() : [];
+  if (mode === 'RF') {
+    const keys = GD.RW.kunci, B = keys.map(k => GD.F['b_' + k]), x = new Uint8Array(keys.length), bb = GD.RW.batas_bin || {};
+    const S = SK.map(k => [keys.indexOf(k), k, bb[k]]).filter(s => s[0] >= 0 && s[2]);
+    for (let j = 0; j < n; j++) { for (let f = 0; f < keys.length; f++) x[f] = B[f][j]; for (const s of S) if (x[s[0]] !== 255) x[s[0]] = binOf(climOf(s[1], j), s[2]); out[j] = rfPredict(x); }
+    return { v: out, w: null };
+  }
   let w = PAR.map((p, i) => { const el = ctl.querySelector(`[data-i="${i}"]`); return mode === 'AHP' ? +el.value : (el.checked ? 1 : 0); });
   const sw = w.reduce((a, b) => a + b, 0) || 1; if (mode === 'AHP') w = w.map(x => x / sw);
-  const idx = new Float32Array(N).fill(NaN), vals = [];
-  for (let c = 0; c < N; c++) {
-    const b = c * STRIDE; if (RAW[b] === 0) continue; let s = 0;
-    for (let k = 0; k < NL; k++) { const cl = RAW[b + k] - 1; s += mode === 'AHP' ? w[k] * PAR[k].skor_ahp[cl] : w[k] * FRLUT[k][cl]; }
-    idx[c] = s; vals.push(s);
+  const C = PAR.map(p => GD.F['c_' + p.kunci]), SM = PAR.map(p => SK.includes(p.kunci));
+  for (let j = 0; j < n; j++) {
+    let s = 0;
+    for (let k = 0; k < PAR.length; k++) { if (!w[k]) continue; let cl = C[k][j]; if (!cl) continue; if (SM[k]) cl = clsOf(climOf(PAR[k].kunci, j), PAR[k].batas); s += mode === 'AHP' ? w[k] * PAR[k].skor_ahp[cl - 1] : w[k] * FRLUT[k][cl - 1]; }
+    out[j] = s;
   }
-  const sorted = Float32Array.from(vals).sort(), br = []; let acc = 0;
-  for (let k = 0; k < 4; k++) { acc += propFR[k]; br.push(sorted[Math.min(sorted.length - 1, Math.floor(acc * sorted.length))]); }
-  const cv = document.createElement('canvas'); cv.width = G.w; cv.height = G.h; const cx = cv.getContext('2d'), im = cx.createImageData(G.w, G.h);
-  const cls = new Uint8Array(N); let hotTot = 0, hotHigh = 0, areaHigh = 0, nValid = 0; const pairs = [];
-  for (let c = 0; c < N; c++) {
-    if (isNaN(idx[c])) continue; nValid++;
-    let k = 0; while (k < 4 && idx[c] > br[k]) k++; cls[c] = k + 1;
-    const col = HAZ[k]; im.data[c * 4] = parseInt(col.slice(1, 3), 16); im.data[c * 4 + 1] = parseInt(col.slice(3, 5), 16); im.data[c * 4 + 2] = parseInt(col.slice(5, 7), 16); im.data[c * 4 + 3] = 255;
-    const hot = RAW[c * STRIDE + NL] > 0; if (hot) { hotTot++; if (k >= 3) hotHigh++; } if (k >= 3) areaHigh++;
-    pairs.push([idx[c], hot ? 1 : 0]);
-  }
+  return { v: out, w };
+}
+function classify(v, mode) {
+  const n = v.length, meth = $('ofThr').value, sorted = Float32Array.from(v).sort(), q = p => sorted[Math.min(n - 1, Math.max(0, Math.floor(p * n)))];
+  let br = [];
+  if (meth === 'interval') { const mn = sorted[0], mx = sorted[n - 1]; br = [1, 2, 3, 4].map(k => mn + (mx - mn) * k / 5); }
+  else { const props = meth === 'kuantil' ? [0.2, 0.2, 0.2, 0.2, 0.2] : meth === 'manual' ? thrProps() : baseProps(mode); let acc = 0; for (let k = 0; k < 4; k++) { acc += props[k]; br.push(q(acc)); } }
+  const cls = new Uint8Array(n); for (let j = 0; j < n; j++) { let k = 0; while (k < 4 && v[j] > br[k]) k++; cls[j] = k + 1; }
+  return { cls, br };
+}
+function presence() {
+  const set = $('ofVal').value, n = GD.n, pr = new Uint8Array(n); let label = '';
+  if (set === 'uji') { for (let j = 0; j < n; j++) pr[j] = GD.F.uji[j] > 0 ? 1 : 0; label = 'titik api 2023–2025'; }
+  else if (set === 'b26') { for (let j = 0; j < n; j++) pr[j] = GD.F.burn26 && GD.F.burn26[j] >= 10 ? 1 : 0; label = 'area terbakar 2026'; }
+  else { const a = D26[+$('d0').value], b = D26[+$('d1').value]; for (const p of (window.TITIK_2026 || [])) { if (p[2] < a || p[2] > b) continue; const j = GD.toCell(p[0], p[1]); if (j >= 0) pr[j] = 1; } label = `titik api ${tgl(a)}–${tgl(b)} 2026`; }
+  return { pr, label };
+}
+function aucOf(v, pr) {
+  const n = v.length, ord = new Uint32Array(n); for (let j = 0; j < n; j++) ord[j] = j; ord.sort((a, b) => v[a] - v[b]);
+  let rank = 0, P = 0, i = 0;
+  while (i < n) { let j = i; while (j < n && v[ord[j]] === v[ord[i]]) j++; const avg = (i + j + 1) / 2; for (let t = i; t < j; t++) if (pr[ord[t]]) { rank += avg; P++; } i = j; }
+  return P && P < n ? (rank - P * (P + 1) / 2) / (P * (n - P)) : NaN;
+}
+function run() {
+  const mode = $('ofMode').value, t0 = performance.now();
+  const { v, w } = computeIndex(mode), { cls, br } = classify(v, mode), { pr, label } = presence(), auc = aucOf(v, pr), n = GD.n, F = GD.F;
+  const kab = Array.from({ length: 5 }, () => ({ a: 0, ah: 0, p: 0, ph: 0, e: 0, eh: 0 }));
+  for (let j = 0; j < n; j++) { const k = F.kab[j]; if (!k) continue; const hi = cls[j] >= 4; for (const z of [kab[0], kab[k]]) { z.a += GD.area[j]; z.p += F.pop[j]; z.e += pr[j]; if (hi) { z.ah += GD.area[j]; z.ph += F.pop[j]; z.eh += pr[j]; } } }
+  const g = GD.g, cv = document.createElement('canvas'); cv.width = g.w; cv.height = g.h; const cx = cv.getContext('2d'), im = cx.createImageData(g.w, g.h);
+  for (let j = 0; j < n; j++) { const c = HAZ[cls[j] - 1], o = GD.cells[j] * 4; im.data[o] = parseInt(c.slice(1, 3), 16); im.data[o + 1] = parseInt(c.slice(3, 5), 16); im.data[o + 2] = parseInt(c.slice(5, 7), 16); im.data[o + 3] = 255; }
   cx.putImageData(im, 0, 0);
-  pairs.sort((a, b) => a[0] - b[0]); let rankSum = 0, i = 0, P = 0;
-  while (i < pairs.length) { let j = i; while (j < pairs.length && pairs[j][0] === pairs[i][0]) j++; const avg = (i + j + 1) / 2; for (let t = i; t < j; t++) if (pairs[t][1]) { rankSum += avg; P++; } i = j; }
-  const auc = (rankSum - P * (P + 1) / 2) / (P * (pairs.length - P));
-  // titik 7 hari pada kelas hasil hitung ulang (proyeksi baris Web Mercator yang sama dengan grid)
-  const my = la => Math.log(Math.tan(Math.PI / 4 + la * Math.PI / 360)), y0 = my(G.bounds[1][0]), y1 = my(G.bounds[0][0]);
-  let n7 = 0, n7h = 0;
-  for (const f of P7) { const [lo, la] = f.geometry.coordinates; const xx = Math.floor((lo - G.bounds[0][1]) / (G.bounds[1][1] - G.bounds[0][1]) * G.w), yy = Math.floor((y0 - my(la)) / (y0 - y1) * G.h);
-    if (xx < 0 || yy < 0 || xx >= G.w || yy >= G.h) continue; const k = cls[yy * G.w + xx]; if (!k) continue; n7++; if (k >= 4) n7h++; }
   const r = RAS.custom; if (r.layer) map.removeLayer(r.layer);
   r.layer = L.imageOverlay(cv.toDataURL(), BOUNDS, { opacity: 0.85, pane: 'raster' });
-  const cb = document.querySelector('#layerGroups input[data-k="custom"]'); cb.disabled = false;
+  document.querySelector('#layerGroups input[data-k="custom"]').disabled = false;
   for (const id of [...activeStack]) if (id.startsWith('bahaya_')) setRaster(id, false);
   setRaster('custom', true);
-  $('kAuc').textContent = fmt(auc, 3); $('kHot').textContent = fmt(100 * hotHigh / hotTot, 1) + '%';
-  $('kArea').textContent = fmt(100 * areaHigh / nValid, 1) + '%'; $('k7z').textContent = fmt(100 * n7h / Math.max(1, n7), 1) + '%';
+  const t = kab[0];
+  $('kAuc').textContent = fmt(auc, 3); $('kHot').textContent = fmt(100 * t.eh / Math.max(1, t.e), 1) + '%';
+  $('kArea').textContent = fmt(100 * t.ah / t.a, 1) + '%'; $('kPop').textContent = fmt(t.ph);
+  $('ofImpact').innerHTML = '<tr><th>Kabupaten</th><th class="n">Zona tinggi (km²)</th><th class="n">% luas</th><th class="n">Penduduk terpapar</th><th class="n">Kejadian di zona tinggi</th></tr>' +
+    [1, 2, 3, 4, 0].map(k => `<tr${k ? '' : ' style="font-weight:700"'}><td>${k ? KAB[k] : 'Papua Selatan'}</td><td class="n">${fmt(kab[k].ah)}</td><td class="n">${fmt(100 * kab[k].ah / kab[k].a, 1)}</td><td class="n">${fmt(kab[k].ph)}</td><td class="n">${fmt(100 * kab[k].eh / Math.max(1, kab[k].e), 0)}%</td></tr>`).join('');
+  lastRun = { mode, w, br, cls, cv, auc, label, kab, rain: $('ofRain').value, rainPct: +$('rainPct').value, dT: +$('tDel').value, dH: +$('hDel').value, dF: +$('fPct').value, thr: $('ofThr').value, ms: Math.round(performance.now() - t0) };
+  ['dlTif', 'dlPng', 'dlCsv', 'dlJson'].forEach(id => $(id).disabled = false);
+  $('kAuc').title = `AUC terhadap ${label}; dihitung dalam ${lastRun.ms} ms`;
 }
+
+// ---------- unduh hasil ----------
+function saveBlob(name, blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+function geoTiff(cls) {
+  const g = GD.g, W = g.w, H = g.h, px = new Uint8Array(W * H); for (let j = 0; j < GD.n; j++) px[GD.cells[j]] = cls[j];
+  const R0 = 6378137, X0 = g.bounds[0][1] * Math.PI / 180 * R0, Y0 = GD.y0 * R0, sx = (g.bounds[1][1] - g.bounds[0][1]) * Math.PI / 180 * R0 / W, sy = (GD.y0 - GD.y1) * R0 / H;
+  const geoKeys = [1, 1, 0, 4, 1024, 0, 1, 1, 1025, 0, 1, 1, 3072, 0, 1, 3857, 3076, 0, 1, 9001], nodata = '0\0';
+  const tags = [[256, 3, 1, W], [257, 3, 1, H], [258, 3, 1, 8], [259, 3, 1, 1], [262, 3, 1, 1], [273, 4, 1, 0], [277, 3, 1, 1], [278, 3, 1, H], [279, 4, 1, W * H], [284, 3, 1, 1], [339, 3, 1, 1],
+    [33550, 12, 3, [sx, sy, 0]], [33922, 12, 6, [0, 0, 0, X0, Y0, 0]], [34735, 3, geoKeys.length, geoKeys], [42113, 2, nodata.length, nodata]];
+  const ifdSize = 2 + tags.length * 12 + 4; let extra = 0; const extraOff = [];
+  for (const t of tags) { const sz = t[1] === 12 ? 8 * t[2] : t[1] === 3 ? 2 * t[2] : t[1] === 2 ? t[2] : 4 * t[2]; if (sz > 4) { extraOff.push(extra); extra += sz + (sz % 2); } else extraOff.push(-1); }
+  const ifdOff = 8, extraBase = ifdOff + ifdSize, dataOff = extraBase + extra, buf = new ArrayBuffer(dataOff + W * H), dv = new DataView(buf);
+  dv.setUint16(0, 0x4949); dv.setUint16(2, 42, true); dv.setUint32(4, ifdOff, true); dv.setUint16(ifdOff, tags.length, true);
+  tags.forEach((t, i) => {
+    const e = ifdOff + 2 + i * 12; dv.setUint16(e, t[0], true); dv.setUint16(e + 2, t[1], true); dv.setUint32(e + 4, t[2], true);
+    let val = t[3]; if (t[0] === 273) val = dataOff;
+    if (extraOff[i] < 0) { if (t[1] === 3) dv.setUint16(e + 8, val, true); else dv.setUint32(e + 8, val, true); return; }
+    const o = extraBase + extraOff[i]; dv.setUint32(e + 8, o, true);
+    if (t[1] === 12) val.forEach((x, k) => dv.setFloat64(o + 8 * k, x, true)); else if (t[1] === 3) val.forEach((x, k) => dv.setUint16(o + 2 * k, x, true)); else for (let k = 0; k < val.length; k++) dv.setUint8(o + k, val.charCodeAt(k));
+  });
+  new Uint8Array(buf, dataOff).set(px);
+  return new Blob([buf], { type: 'image/tiff' });
+}
+const tag = () => `${lastRun.mode}_${lastRun.rain === '0' ? 'normal' : lastRun.rain === '2026' ? 'kemarau2026' : 'atur_hujan' + lastRun.rainPct}`;
+$('dlTif').addEventListener('click', () => lastRun && saveBlob(`bahaya_onthefly_${tag()}_1km_epsg3857.tif`, geoTiff(lastRun.cls)));
+$('dlPng').addEventListener('click', () => lastRun && lastRun.cv.toBlob(b => saveBlob(`bahaya_onthefly_${tag()}.png`, b)));
+$('dlCsv').addEventListener('click', () => { if (!lastRun) return; const rows = [['kabupaten', 'luas_km2', 'zona_tinggi_km2', 'persen_zona_tinggi', 'penduduk', 'penduduk_zona_tinggi', 'sel_kejadian', 'sel_kejadian_zona_tinggi']];
+  [1, 2, 3, 4, 0].forEach(k => { const z = lastRun.kab[k]; rows.push([k ? KAB[k] : 'Papua Selatan', z.a.toFixed(1), z.ah.toFixed(1), (100 * z.ah / z.a).toFixed(2), Math.round(z.p), Math.round(z.ph), z.e, z.eh]); });
+  saveBlob(`dampak_onthefly_${tag()}.csv`, new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv' })); });
+$('dlJson').addEventListener('click', () => { if (!lastRun) return; const o = { dibuat: new Date().toISOString(), model: lastRun.mode, bobot: lastRun.w && PAR.map((p, i) => ({ parameter: p.nama, bobot: +lastRun.w[i].toFixed(4) })), skenario_iklim: lastRun.rain === 'custom' ? { curah_hujan_persen: lastRun.rainPct, suhu_delta_C: lastRun.dT, kelembapan_delta_poin: lastRun.dH, fwi_persen: lastRun.dF, parameter_berubah: climKeys() } : lastRun.rain === '2026' ? 'kemarau 2026 (anomali terukur)' : 'normal', ambang: lastRun.thr, batas_kelas: Array.from(lastRun.br), validasi: lastRun.label, AUC: +lastRun.auc.toFixed(4) };
+  saveBlob(`pengaturan_onthefly_${tag()}.json`, new Blob([JSON.stringify(o, null, 2)], { type: 'application/json' })); });
+
+// ---------- info lokasi (klik peta) ----------
+let infoOn = false;
+const InfoCtl = L.Control.extend({ options: { position: 'topleft' }, onAdd() { const b = L.DomUtil.create('a', 'leaflet-bar info-btn'); b.href = '#'; b.title = 'Info lokasi: klik peta untuk melihat nilai semua lapisan'; b.innerHTML = 'ⓘ'; L.DomEvent.on(b, 'click', e => { L.DomEvent.stop(e); infoOn = !infoOn; b.classList.toggle('on', infoOn); map.getContainer().style.cursor = infoOn ? 'help' : ''; if (infoOn) loadGrid(); }); return b; } });
+new InfoCtl().addTo(map);
+map.on('click', async e => {
+  if (!infoOn) return; await loadGrid(); if (!PAR) { PAR = R.parameter; }
+  const j = GD.toCell(e.latlng.lng, e.latlng.lat); if (j < 0) { L.popup().setLatLng(e.latlng).setContent('Di luar Provinsi Papua Selatan').openOn(map); return; }
+  const F = GD.F, k = F.kec[j], m = mm => F['m_' + mm][j] ? HAZN[F['m_' + mm][j] - 1] : '–';
+  const rows = PAR.map(p => `<tr><td>${p.nama.replace(/ \(.*\)/, '')}</td><td>${F['c_' + p.kunci][j] ? p.kelas[F['c_' + p.kunci][j] - 1] + (p.satuan && !/kelas|izin|SK/.test(p.satuan) ? ' ' + p.satuan : '') : '–'}</td></tr>`).join('');
+  const an = F.anom26 && F.anom26[j] > 0 ? F.anom26[j] - 1000 : null, a26 = f => F['a26_' + f] && F['a26_' + f][j] > 0 ? (F['a26_' + f][j] - 10000) / 100 : null;
+  const clim = [['suhu', 'Suhu udara Agu–Nov', '°C', 1], ['rh', 'Kelembapan relatif Agu–Nov', '%', 0], ['fwi', 'Fire Weather Index Agu–Nov', '', 1]].filter(c => F[c[0]]).map(c => { const a = a26(c[0]);
+    return `<tr><td>${c[1]}</td><td>${fmt(F[c[0]][j] / 100, c[3])} ${c[2]}${a !== null ? ` <span style="color:${(c[0] === 'rh' ? -a : a) > 0 ? '#C92A2A' : '#1864AB'}">(2026 ${a > 0 ? '+' : ''}${fmt(a, 1)})</span>` : ''}</td></tr>`; }).join('');
+  L.popup({ maxWidth: 330 }).setLatLng(e.latlng).setContent(`<b>${k && KEC[k] ? 'Kec. ' + KEC[k].kecamatan + ', ' + KEC[k].kabupaten : KAB[F.kab[j]]}</b><br>${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}
+    <table><tr><td>Bahaya RF / FR / AHP</td><td><b>${m('RF')}</b> / ${m('FR')} / ${m('AHP')}</td></tr>${lastRun ? `<tr><td>Hasil hitung ulang</td><td><b>${HAZN[lastRun.cls[j] - 1]}</b></td></tr>` : ''}
+    <tr><td>Penduduk (±1 km²)</td><td>${fmt(F.pop[j])} jiwa</td></tr><tr><td>Elevasi</td><td>${fmt(F.elev[j])} m</td></tr><tr><td>Curah hujan Agu–Nov</td><td>${fmt(F.rain[j])} mm/bln</td></tr>
+    ${an !== null ? `<tr><td>Anomali hujan Agu–Sep 2026</td><td>${an > 0 ? '+' : ''}${fmt(an)}%</td></tr>` : ''}${clim}<tr><td>Gambut (Peat-ML)</td><td>${F.gambut[j]}%</td></tr>
+    ${F.burn26 ? `<tr><td>Terbakar 2026 (MODIS)</td><td>${F.burn26[j]}% sel</td></tr>` : ''}<tr><td>Titik api 2023–2025</td><td>${F.uji[j]} deteksi</td></tr></table>
+    <details><summary>Kelas ${PAR.length} parameter</summary><table>${rows}</table></details>`).openOn(map);
+});
 </script>
 </body>
 </html>
