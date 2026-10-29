@@ -121,7 +121,14 @@
       <select id="opLayer"></select>
       <input type="range" id="opacity" min="0" max="100" value="80">
       <h2>Data vektor</h2>
-      <label class="row"><input type="checkbox" id="showKec"> Kecamatan + statistik dampak (klik poligon)</label>
+      <label class="row"><input type="checkbox" id="showKec"> Dampak per kecamatan (klik poligon untuk statistik)</label>
+      <select id="kecVar">
+        <option value="persen_tinggi_sangat_tinggi">% luas zona bahaya tinggi–sangat tinggi</option>
+        <option value="penduduk_zona_tinggi">Penduduk di zona tinggi–sangat tinggi</option>
+        <option value="terbakar_2026_ha">Area terbakar 2026 (ha, MODIS)</option>
+        <option value="">Batas kecamatan saja</option>
+      </select>
+      <div class="legend" id="legKec" style="display:none"></div>
       <label class="row"><input type="checkbox" id="showKab" checked> Batas kabupaten</label>
       <label class="row"><input type="checkbox" id="showFac"> Fasilitas publik di zona bahaya tinggi (<span id="nFac">0</span>)</label>
       <label class="row"><input type="checkbox" id="showUji"> Titik api 2023–2025 (data uji)</label>
@@ -132,6 +139,7 @@
       </div>
       <h2>Wilayah</h2>
       <select id="kabSel"><option value="">Seluruh provinsi</option></select>
+      <select id="kecSel" style="margin-top:6px"><option value="">Cari kecamatan…</option></select>
     </section>
 
     <section class="tab" id="model">
@@ -238,7 +246,28 @@ function kecPopup(p) {
   <tr><td>Kehilangan hutan 2024–2025</td><td>${fmt(p.kehilangan_hutan_2024_2025_ha)} ha</td></tr></table>
   <span style="color:#6B6762;font-size:11px">*saat model dijalankan; lihat tab Terkini untuk data terbaru</span>`;
 }
-const kecLayer = L.geoJSON(window.KECAMATAN, { pane: 'vec', style: { color: '#495057', weight: 0.8, fillOpacity: 0, dashArray: '2 3' }, onEachFeature: (f, l) => l.bindPopup(kecPopup(f.properties), { maxWidth: 300 }) });
+// lapisan dampak per kecamatan (koroplet) dengan kelas tetap
+const KECV = {
+  persen_tinggi_sangat_tinggi: { br: [10, 25, 50, 75], lab: ['< 10%', '10–25%', '25–50%', '50–75%', '≥ 75%'], judul: '% luas zona tinggi–sangat tinggi' },
+  penduduk_zona_tinggi: { br: [500, 2000, 5000, 10000], lab: ['< 500', '500–2.000', '2.000–5.000', '5.000–10.000', '≥ 10.000 jiwa'], judul: 'Penduduk di zona tinggi–sangat tinggi' },
+  terbakar_2026_ha: { br: [100, 1000, 5000, 10000], lab: ['< 100 ha', '100–1.000', '1.000–5.000', '5.000–10.000', '≥ 10.000 ha'], judul: 'Area terbakar 2026 (MODIS)' }
+};
+const KECC = ['#FFF5EB', '#FDBE85', '#FD8D3C', '#D94701', '#7F2704'];
+function kecStyle(f) {
+  const v = $('kecVar').value, d = KECV[v];
+  if (!d) return { color: '#495057', weight: 0.8, fillOpacity: 0, dashArray: '2 3' };
+  let k = 0; while (k < 4 && f.properties[v] >= d.br[k]) k++;
+  return { color: '#5f5a55', weight: 0.6, fillColor: KECC[k], fillOpacity: 0.75 };
+}
+const kecLayer = L.geoJSON(window.KECAMATAN, { pane: 'vec', style: kecStyle, onEachFeature: (f, l) => l.bindPopup(kecPopup(f.properties), { maxWidth: 300 }) });
+function kecLegend() {
+  const d = KECV[$('kecVar').value], show = $('showKec').checked && d;
+  $('legKec').style.display = show ? 'block' : 'none';
+  if (show) $('legKec').innerHTML = `<div class="t">${d.judul} (model ${MAIN})</div>` + d.lab.map((n, i) => `<div class="i"><span class="sw" style="background:${KECC[i]}"></span>${n}</div>`).join('');
+}
+$('kecVar').addEventListener('change', () => { kecLayer.setStyle(kecStyle); kecLegend(); });
+for (const p of Object.values(KEC).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan))) { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.kecamatan} (${p.kabupaten})`; $('kecSel').appendChild(o); }
+$('kecSel').addEventListener('change', e => e.target.value && zoomKec(+e.target.value));
 const kabLayer = L.geoJSON(window.KABUPATEN, { pane: 'vec', interactive: false, style: { color: '#1E1B18', weight: 1.8, fillOpacity: 0 } }).addTo(map);
 for (const f of window.KABUPATEN.features) { const o = document.createElement('option'); o.value = f.properties.kabupaten; o.textContent = f.properties.kabupaten; $('kabSel').appendChild(o); }
 $('kabSel').addEventListener('change', e => {
@@ -246,9 +275,9 @@ $('kabSel').addEventListener('change', e => {
   kabLayer.eachLayer(l => { const on = l.feature.properties.kabupaten === e.target.value; l.setStyle({ weight: on ? 3.5 : 1.2, color: on ? '#D9480F' : '#1E1B18' }); if (on) map.fitBounds(l.getBounds()); });
 });
 $('showKab').addEventListener('change', e => e.target.checked ? kabLayer.addTo(map) : map.removeLayer(kabLayer));
-$('showKec').addEventListener('change', e => e.target.checked ? kecLayer.addTo(map) : map.removeLayer(kecLayer));
+$('showKec').addEventListener('change', e => { e.target.checked ? kecLayer.addTo(map) : map.removeLayer(kecLayer); kecLegend(); });
 function zoomKec(id) {
-  kecLayer.addTo(map); $('showKec').checked = true;
+  kecLayer.addTo(map); $('showKec').checked = true; kecLegend();
   kecLayer.eachLayer(l => { if (l.feature.properties.id === id) { map.fitBounds(l.getBounds(), { maxZoom: 11 }); l.openPopup(); } });
 }
 
