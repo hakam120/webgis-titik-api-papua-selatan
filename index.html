@@ -35,8 +35,8 @@
   .note { font-size:12px; color:var(--muted); margin-top:6px; line-height:1.45; }
   select, input[type=range] { width:100%; }
   select { padding:6px; font:inherit; font-size:13px; border:1px solid var(--line); border-radius:6px; background:#fff; }
-  .slider { display:grid; grid-template-columns:1fr 38px; gap:6px; align-items:center; margin:4px 0 0; font-size:12.5px; }
-  .slider span.v { text-align:right; font-variant-numeric:tabular-nums; }
+  .slider { display:grid; grid-template-columns:1fr auto; gap:6px; align-items:center; margin:4px 0 0; font-size:12.5px; }
+  .slider span.v { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; min-width:38px; }
   button.act { margin-top:10px; width:100%; padding:10px; font:inherit; font-weight:700; color:#fff; background:var(--ember); border:0; border-radius:8px; cursor:pointer; }
   button.ghost { margin-top:6px; width:100%; padding:8px; font:inherit; color:var(--ink); background:var(--tint); border:0; border-radius:8px; cursor:pointer; }
   .kpis { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0; }
@@ -172,7 +172,7 @@
         <div class="cz" data-k="kelembapan"><div class="slider"><span>Kelembapan relatif</span><span class="v" id="hV"></span></div><input type="range" id="hDel" min="-20" max="10" step="1" value="-5"></div>
         <div class="cz" data-k="fwi"><div class="slider"><span>Fire Weather Index</span><span class="v" id="fV"></span></div><input type="range" id="fPct" min="-50" max="150" step="5" value="30"></div></div>
       <h3>3 · Ambang kelas</h3>
-      <select id="ofThr"><option value="model">Proporsi luas kelas model 100 m</option><option value="kuantil">Kuantil (5 kelas sama luas)</option><option value="interval">Interval sama</option><option value="manual">Manual (% luas tiap kelas)</option></select>
+      <select id="ofThr"><option value="tetap">Batas nilai kondisi normal (luas kelas mengikuti skenario)</option><option value="model">Proporsi luas kelas model 100 m (luas tetap)</option><option value="kuantil">Kuantil (5 kelas sama luas)</option><option value="interval">Interval sama</option><option value="manual">Manual (% luas tiap kelas)</option></select>
       <div id="thrBox" style="display:none"><div class="thrgrid" id="thrInputs"></div><p class="note" style="margin-top:2px">% luas kelas 1 (sangat rendah) sampai 5 (sangat tinggi); dinormalisasi otomatis.</p></div>
       <h3>4 · Data kejadian untuk validasi</h3>
       <select id="ofVal"><option value="uji">Titik api 2023–2025 (data uji)</option><option value="t26">Titik api 2026 (VIIRS S-NPP, pilih tanggal)</option><option value="b26">Area terbakar 2026 (MODIS, ≥ 10% sel)</option></select>
@@ -222,7 +222,7 @@
       <p>WebGIS untuk PjBL GD4103 Sistem Informasi Geografis 2026 (Teknik Geodesi dan Geomatika ITB), tema karhutla, fokus <b>titik api</b> di Provinsi Papua Selatan (Merauke, Mappi, Boven Digoel, Asmat).</p>
       <p><b>Data terkini.</b> Titik api 7 hari terakhir dari NASA FIRMS NRT (VIIRS S-NPP, NOAA-20, NOAA-21, MODIS Terra/Aqua) diunduh ulang otomatis setiap 6 jam oleh GitHub Actions, diberi atribut kecamatan, kelas bahaya, gambut, fungsi kawasan, dan perizinan.</p>
       <p><b>Model.</b> 15 parameter: tutupan lahan, curah hujan Agu–Nov, suhu udara, kelembapan relatif, Fire Weather Index, fraksi gambut, frekuensi genangan, jarak ke permukiman, jalan, sungai, kehilangan hutan 2013–2022, fungsi kawasan hutan, perizinan, elevasi dan kemiringan (DEMNAS). Tiga model: Rasio Frekuensi, AHP, Random Forest. Latih 2015–2022, uji 2023–2025 dan 2026.</p>
-      <p><b>Nilai tambah.</b> (1) Pemodelan on-the-fly di peramban: Random Forest, AHP dengan bobot yang dapat diubah, atau Rasio Frekuensi dengan pilihan parameter; skenario iklim (normal, kemarau 2026 dengan anomali hujan, suhu, kelembapan, dan FWI terukur per sel, atau perubahan seragam yang diatur sendiri); ambang kelas (proporsi model, kuantil, interval sama, manual); validasi terhadap data kejadian dan rentang tanggal pilihan; dampak per kabupaten langsung. (2) Animasi waktu titik api 2026. (3) Info lokasi: tombol ⓘ lalu klik peta. (4) Unduh hasil: GeoTIFF, PNG, CSV, JSON, dan titik api terpilih.</p>
+      <p><b>Nilai tambah.</b> (1) Pemodelan on-the-fly di peramban: Random Forest, AHP dengan bobot yang dapat diubah, atau Rasio Frekuensi dengan pilihan parameter; skenario iklim (normal, kemarau 2026 dengan anomali hujan, suhu, kelembapan, dan FWI terukur per sel, atau perubahan seragam yang diatur sendiri); ambang kelas (batas nilai kondisi normal sehingga luas zona bahaya mengikuti skenario, proporsi model, kuantil, interval sama, manual); validasi terhadap data kejadian dan rentang tanggal pilihan; dampak per kabupaten langsung. (2) Animasi waktu titik api 2026. (3) Info lokasi: tombol ⓘ lalu klik peta. (4) Unduh hasil: GeoTIFF, PNG, CSV, JSON, dan titik api terpilih.</p>
       <p><b>Sumber data.</b> NASA FIRMS; MODIS MCD64A1 (Microsoft Planetary Computer); BIG Satu Peta (gambut FEG, KHG, rawan karhutla KLHK, kawasan hutan, PBPH, izin sawit, PIPPIB, mangrove, sawah, kecamatan); ESA WorldCover 2021; Esri/IO LULC; Hansen GFC v1.13; JRC Global Surface Water; CHIRPS v3; Copernicus ERA5-Land dan CEMS Fire Weather Index; DEMNAS (BIG, Ina-Geoportal; celah pesisir diisi Copernicus DEM); Peat-ML; GHSL 2025; Meta HRSL 2020 + Sensus Penduduk 2020 (BPS); Google Open Buildings v3; OpenStreetMap; geoBoundaries.</p>
       <p><b>Unduh.</b> <a href="unduh/ringkasan_model_v2.json" download>Ringkasan model (JSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kabupaten.geojson" download>Dampak per kabupaten (GeoJSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kecamatan.geojson" download>Dampak per kecamatan (GeoJSON)</a> · <a href="unduh/tabel_dampak_v2_per_kecamatan.csv" download>Tabel kecamatan (CSV)</a></p>
       <p class="note">Tim: Rizki Maulana (15123070), Muhammad Hakam Al-Asyam (15123044), Nurrachman Alwy Sumintardja (15123100), Hafzulh Usmu Alfalah (12823048), Fauzan Rizki (12823030).</p>
@@ -537,7 +537,8 @@ function scenText() {
   const sc = $('ofRain').value, I = GD && GD.g.iklim, B = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'], ks = GD && PAR ? climKeys() : ['curah_hujan'];
   const nm = { curah_hujan: 'curah hujan', suhu: 'suhu', kelembapan: 'kelembapan', fwi: 'FWI' };
   if (sc === '0') return `Parameter iklim (${ks.map(k => nm[k]).join(', ')}) memakai rata-rata Agustus–November 2015–2022.`;
-  if (sc === '2026') return 'Nilai normal tiap sel ditambah anomali 2026 yang terukur: curah hujan CHIRPS Agu–Sep' + (I && ks.includes('suhu') ? `, suhu & kelembapan ERA5-Land Agu–${B[I.era5land_bulan_2026_terakhir]}` : '') + (I && ks.includes('fwi') ? `, FWI CEMS Agu–${B[I.fwi_bulan_2026_terakhir]}` : '') + ' 2026 (terhadap 2015–2025).';
+  const rng = m => m > 8 ? `Agu–${B[m]}` : B[m];
+  if (sc === '2026') return 'Nilai normal tiap sel ditambah anomali 2026 yang terukur: curah hujan CHIRPS Agu–Sep' + (I && ks.includes('suhu') ? `, suhu & kelembapan ERA5-Land ${rng(I.era5land_bulan_2026_terakhir)}` : '') + (I && ks.includes('fwi') ? `, FWI CEMS ${rng(I.fwi_bulan_2026_terakhir)}` : '') + ' 2026 (terhadap 2015–2025).';
   return 'Perubahan yang sama diterapkan ke semua sel. FWI tidak dihitung ulang dari suhu/hujan, jadi atur terpisah.';
 }
 
@@ -569,14 +570,14 @@ function thrProps() { const v = HAZN.map((n, i) => Math.max(0.5, +$('thr' + i).v
 $('ofMode').addEventListener('change', () => { if (!GD) return; buildControls(); buildThr(); });
 $('ofRain').addEventListener('change', () => { $('rainBox').style.display = $('ofRain').value === 'custom' ? 'block' : 'none'; $('scenNote').textContent = scenText(); });
 const sgn = v => (v > 0 ? '+' : '') + fmt(v, v % 1 ? 1 : 0);
-const sliderTxt = () => { $('rainV').textContent = sgn(+$('rainPct').value) + '%'; $('tV').textContent = sgn(+$('tDel').value) + ' °C'; $('hV').textContent = sgn(+$('hDel').value) + ' poin %'; $('fV').textContent = sgn(+$('fPct').value) + '%'; };
+const sliderTxt = () => { $('rainV').textContent = sgn(+$('rainPct').value) + '%'; $('tV').textContent = sgn(+$('tDel').value) + ' °C'; $('hV').textContent = sgn(+$('hDel').value) + ' poin'; $('fV').textContent = sgn(+$('fPct').value) + '%'; };
 ['rainPct', 'tDel', 'hDel', 'fPct'].forEach(id => $(id).addEventListener('input', sliderTxt)); sliderTxt();
 $('scenNote').textContent = scenText();
 $('ofThr').addEventListener('change', () => $('thrBox').style.display = $('ofThr').value === 'manual' ? 'block' : 'none');
 $('ofVal').addEventListener('change', () => $('valDate').style.display = $('ofVal').value === 't26' ? 'block' : 'none');
 ['d0', 'd1'].forEach(id => $(id).addEventListener('input', () => { if (+$('d0').value > +$('d1').value) { if (id === 'd0') $('d1').value = $('d0').value; else $('d0').value = $('d1').value; } showDates(); }));
 $('ofRun').addEventListener('click', () => GD && run());
-$('ofReset').addEventListener('click', () => { if (!GD) return; $('ofMode').value = 'RF'; $('ofRain').value = '0'; $('rainBox').style.display = 'none'; $('scenNote').textContent = scenText(); $('ofThr').value = 'model'; $('thrBox').style.display = 'none'; $('ofVal').value = 'uji'; $('valDate').style.display = 'none'; buildControls(); buildThr(); run(); });
+$('ofReset').addEventListener('click', () => { if (!GD) return; $('ofMode').value = 'RF'; $('ofRain').value = '0'; $('rainBox').style.display = 'none'; $('scenNote').textContent = scenText(); $('ofThr').value = 'tetap'; $('thrBox').style.display = 'none'; $('ofVal').value = 'uji'; $('valDate').style.display = 'none'; buildControls(); buildThr(); run(); });
 
 function computeIndex(mode) {
   const n = GD.n, out = new Float32Array(n), scen = $('ofRain').value !== '0', SK = scen ? climKeys() : [];
@@ -596,12 +597,13 @@ function computeIndex(mode) {
   }
   return { v: out, w };
 }
-function classify(v, mode) {
-  const n = v.length, meth = $('ofThr').value, sorted = Float32Array.from(v).sort(), q = p => sorted[Math.min(n - 1, Math.max(0, Math.floor(p * n)))];
+// 'tetap': batas kelas dihitung dari indeks kondisi normal (proporsi luas model), lalu diterapkan ke indeks skenario
+function classify(v, mode, vRef) {
+  const meth = $('ofThr').value, ref = meth === 'tetap' && vRef ? vRef : v, n = ref.length, sorted = Float32Array.from(ref).sort(), q = p => sorted[Math.min(n - 1, Math.max(0, Math.floor(p * n)))];
   let br = [];
   if (meth === 'interval') { const mn = sorted[0], mx = sorted[n - 1]; br = [1, 2, 3, 4].map(k => mn + (mx - mn) * k / 5); }
   else { const props = meth === 'kuantil' ? [0.2, 0.2, 0.2, 0.2, 0.2] : meth === 'manual' ? thrProps() : baseProps(mode); let acc = 0; for (let k = 0; k < 4; k++) { acc += props[k]; br.push(q(acc)); } }
-  const cls = new Uint8Array(n); for (let j = 0; j < n; j++) { let k = 0; while (k < 4 && v[j] > br[k]) k++; cls[j] = k + 1; }
+  const cls = new Uint8Array(v.length); for (let j = 0; j < v.length; j++) { let k = 0; while (k < 4 && v[j] > br[k]) k++; cls[j] = k + 1; }
   return { cls, br };
 }
 function presence() {
@@ -619,7 +621,9 @@ function aucOf(v, pr) {
 }
 function run() {
   const mode = $('ofMode').value, t0 = performance.now();
-  const { v, w } = computeIndex(mode), { cls, br } = classify(v, mode), { pr, label } = presence(), auc = aucOf(v, pr), n = GD.n, F = GD.F;
+  const { v, w } = computeIndex(mode); let vRef = null;
+  if ($('ofThr').value === 'tetap' && $('ofRain').value !== '0') { const sc = $('ofRain').value; $('ofRain').value = '0'; vRef = computeIndex(mode).v; $('ofRain').value = sc; }
+  const { cls, br } = classify(v, mode, vRef), { pr, label } = presence(), auc = aucOf(v, pr), n = GD.n, F = GD.F;
   const kab = Array.from({ length: 5 }, () => ({ a: 0, ah: 0, p: 0, ph: 0, e: 0, eh: 0 }));
   for (let j = 0; j < n; j++) { const k = F.kab[j]; if (!k) continue; const hi = cls[j] >= 4; for (const z of [kab[0], kab[k]]) { z.a += GD.area[j]; z.p += F.pop[j]; z.e += pr[j]; if (hi) { z.ah += GD.area[j]; z.ph += F.pop[j]; z.eh += pr[j]; } } }
   const g = GD.g, cv = document.createElement('canvas'); cv.width = g.w; cv.height = g.h; const cx = cv.getContext('2d'), im = cx.createImageData(g.w, g.h);
