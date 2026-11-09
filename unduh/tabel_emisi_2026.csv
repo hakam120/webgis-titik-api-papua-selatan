@@ -1,0 +1,4 @@
+﻿"skenario","asumsi_gambut","luas_terbakar_ha","luas_gambut_terbakar_ha","bahan_kering_vegetasi_t","bahan_kering_gambut_t","CO2_t","CO_t","CH4_t","N2O_t","karbon_t","CO2e_kotor_t","CO2e_bersih_t","persen_dari_gambut","proyeksi_CO2e_kotor_sd_Okt_t"
+"rendah","luas FEG; 82 t/ha (batas bawah IPCC, pembakaran dangkal)","89053","641","265507","52562","512878","33638","2320","54","156032","592126","380882","20","2346814"
+"tengah","luas Peat-ML berbobot; 155 t/ha (IPCC, pembakaran lahan)","89053","22287","1546167","3454430","8330137","873838","81616","312","2707569","10698013","10181151","74","42400177"
+"tinggi","luas Peat-ML berbobot; 353 t/ha (IPCC, gambut terdrainase)","89053","22287","3047815","7867185","18219755","1945320","183182","615","5940119","23511838","22524451","77","93186096"

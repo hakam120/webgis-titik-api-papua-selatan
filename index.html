@@ -144,6 +144,8 @@
         <option value="persen_tinggi_sangat_tinggi">% luas zona bahaya tinggi–sangat tinggi</option>
         <option value="penduduk_zona_tinggi">Penduduk di zona tinggi–sangat tinggi</option>
         <option value="terbakar_2026_ha">Area terbakar 2026 (ha, MODIS)</option>
+        <option value="emisi_2026_CO2e_t">Perkiraan emisi kebakaran 2026 (t CO2e, Jan–Agu)</option>
+        <option value="tangkapan_2026_persen">Kinerja model: % titik api 2026 di zona tinggi</option>
       </select>
       <div class="legend" id="legKec" style="display:none"></div>
       <label class="row"><input type="checkbox" id="showFac"> Fasilitas publik di zona bahaya tinggi (<span id="nFac">0</span>)</label>
@@ -218,6 +220,21 @@
       <table id="impactTable"></table>
       <h2>Kecamatan paling terpapar</h2>
       <table id="kecImpact"></table>
+      <div id="boxAnalisis" style="display:none">
+        <h2>Perkiraan emisi kebakaran 2026</h2>
+        <table id="emTable"></table>
+        <p class="note" id="emNote"></p>
+        <h2>Tutupan lahan yang terbakar 2026</h2>
+        <table id="lcTable"></table>
+        <h2>Kinerja model per kabupaten (titik api 2026)</h2>
+        <table id="perfKab"></table>
+        <p class="note">Tangkapan = % sel titik api VIIRS S-NPP yang jatuh di zona tinggi–sangat tinggi RF. AUC per kabupaten membandingkan sel di dalam kabupaten itu saja.</p>
+        <h2>Kecamatan dengan tangkapan terendah</h2>
+        <table id="perfKec"></table>
+        <h2>Ketidakpastian: kesepakatan tiga model</h2>
+        <table id="agTable"></table>
+        <p class="note" id="agNote"></p>
+      </div>
     </section>
 
     <section class="tab" id="tentang">
@@ -227,7 +244,7 @@
       <p><b>Model.</b> 15 parameter: tutupan lahan, curah hujan Agu–Nov, suhu udara, kelembapan relatif, Fire Weather Index, fraksi gambut, frekuensi genangan, jarak ke permukiman, jalan, sungai, kehilangan hutan 2013–2022, fungsi kawasan hutan, perizinan, elevasi dan kemiringan (DEMNAS). Tiga model: Rasio Frekuensi, AHP, Random Forest. Latih 2015–2022, uji 2023–2025 dan 2026.</p>
       <p><b>Nilai tambah.</b> (1) Pemodelan on-the-fly di peramban: Random Forest, AHP dengan bobot yang dapat diubah, atau Rasio Frekuensi dengan pilihan parameter; skenario iklim (normal, kemarau 2026 dengan anomali hujan, suhu, kelembapan, dan FWI terukur per sel, atau perubahan seragam yang diatur sendiri); ambang kelas (batas nilai kondisi normal sehingga luas zona bahaya mengikuti skenario, proporsi model, kuantil, interval sama, manual); validasi terhadap data kejadian dan rentang tanggal pilihan; dampak per kabupaten langsung. (2) Animasi waktu titik api 2026. (3) Info lokasi: tombol ⓘ lalu klik peta. (4) Unduh hasil: GeoTIFF, PNG, CSV, JSON, dan titik api terpilih.</p>
       <p><b>Sumber data.</b> NASA FIRMS; MODIS MCD64A1 (Microsoft Planetary Computer); BIG Satu Peta (gambut FEG, KHG, rawan karhutla KLHK, kawasan hutan, PBPH, izin sawit, PIPPIB, mangrove, sawah, kecamatan); ESA WorldCover 2021; Esri/IO LULC; Hansen GFC v1.13; JRC Global Surface Water; CHIRPS v3; Copernicus ERA5-Land dan CEMS Fire Weather Index; DEMNAS (BIG, Ina-Geoportal; celah pesisir diisi Copernicus DEM); Peat-ML; GHSL 2025; Meta HRSL 2020 + Sensus Penduduk 2020 (BPS); Google Open Buildings v3; OpenStreetMap; geoBoundaries.</p>
-      <p><b>Unduh.</b> <a href="unduh/ringkasan_model_v2.json" download>Ringkasan model (JSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kabupaten.geojson" download>Dampak per kabupaten (GeoJSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kecamatan.geojson" download>Dampak per kecamatan (GeoJSON)</a> · <a href="unduh/tabel_dampak_v2_per_kecamatan.csv" download>Tabel kecamatan (CSV)</a></p>
+      <p><b>Unduh.</b> <a href="unduh/ringkasan_model_v2.json" download>Ringkasan model (JSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kabupaten.geojson" download>Dampak per kabupaten (GeoJSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kecamatan.geojson" download>Dampak per kecamatan (GeoJSON)</a> · <a href="unduh/tabel_dampak_v2_per_kecamatan.csv" download>Tabel kecamatan (CSV)</a> · <a href="unduh/tabel_emisi_2026.csv" download>Emisi 2026 (CSV)</a> · <a href="unduh/tabel_kinerja_dampak_lanjutan_per_kecamatan.csv" download>Kinerja &amp; emisi per kecamatan (CSV)</a></p>
       <p class="note">Tim: Rizki Maulana (15123070), Muhammad Hakam Al-Asyam (15123044), Nurrachman Alwy Sumintardja (15123100), Hafzulh Usmu Alfalah (12823048), Fauzan Rizki (12823030).</p>
       <p class="note">Titik api adalah indikasi, bukan konfirmasi kebakaran di lapangan. Interpretasi kode fungsi kawasan hutan bersumber dari atribut Satu Peta. Produk ini untuk keperluan akademik.</p>
     </section>
@@ -240,6 +257,7 @@
 <script src="data/ringkasan_v2.js"></script>
 <script src="data/kabupaten.js"></script>
 <script src="data/kecamatan.js"></script>
+<script src="data/analisis_v2.js"></script>
 <script src="data/titik_api_7hari.js"></script>
 <script src="data/arsip_harian.js"></script>
 <script src="data/fasilitas.js"></script>
@@ -289,27 +307,33 @@ function kecPopup(p) {
   <tr><td>Bangunan di zona tinggi</td><td>${fmt(p.bangunan_zona_tinggi)}</td></tr>
   <tr><td>Titik api 7 hari terakhir*</td><td><b>${fmt(p.titik_api_7hari)}</b></td></tr>
   <tr><td>Area terbakar 2026 (MODIS)</td><td>${fmt(p.terbakar_2026_ha)} ha</td></tr>
-  <tr><td>Kehilangan hutan 2024–2025</td><td>${fmt(p.kehilangan_hutan_2024_2025_ha)} ha</td></tr></table>
+  <tr><td>Kehilangan hutan 2024–2025</td><td>${fmt(p.kehilangan_hutan_2024_2025_ha)} ha</td></tr>
+  ${p.emisi_2026_CO2e_t !== undefined ? `<tr><td>Gambut terbakar 2026 (Peat-ML)</td><td>${fmt(p.gambut_terbakar_2026_ha)} ha</td></tr>
+  <tr><td>Perkiraan emisi Jan–Agu 2026</td><td><b>${fmt(p.emisi_2026_CO2e_t)}</b> t CO2e<br><span style="color:#6B6762">rentang ${fmt(p.emisi_2026_CO2e_rendah_t)}–${fmt(p.emisi_2026_CO2e_tinggi_t)}</span></td></tr>
+  <tr><td>Kinerja model 2026</td><td>${p.sel_api_2026_snpp >= 50 ? `<b>${fmt(p.tangkapan_2026_persen, 1)}%</b> titik api di zona tinggi (${p.kinerja_2026})` : `data sedikit (${fmt(p.sel_api_2026_snpp)} sel api)`}</td></tr>` : ''}</table>
   <span style="color:#6B6762;font-size:11px">*saat model dijalankan; lihat tab Terkini untuk data terbaru</span>`;
 }
 // lapisan dampak per kecamatan (koroplet) dengan kelas tetap
 const KECV = {
   persen_tinggi_sangat_tinggi: { br: [10, 25, 50, 75], lab: ['< 10%', '10–25%', '25–50%', '50–75%', '≥ 75%'], judul: '% luas zona tinggi–sangat tinggi' },
   penduduk_zona_tinggi: { br: [500, 2000, 5000, 10000], lab: ['< 500', '500–2.000', '2.000–5.000', '5.000–10.000', '≥ 10.000 jiwa'], judul: 'Penduduk di zona tinggi–sangat tinggi' },
-  terbakar_2026_ha: { br: [100, 1000, 5000, 10000], lab: ['< 100 ha', '100–1.000', '1.000–5.000', '5.000–10.000', '≥ 10.000 ha'], judul: 'Area terbakar 2026 (MODIS)' }
+  terbakar_2026_ha: { br: [100, 1000, 5000, 10000], lab: ['< 100 ha', '100–1.000', '1.000–5.000', '5.000–10.000', '≥ 10.000 ha'], judul: 'Area terbakar 2026 (MODIS)' },
+  emisi_2026_CO2e_t: { br: [1000, 10000, 100000, 500000], lab: ['< 1.000 t', '1.000–10.000', '10.000–100.000', '100.000–500.000', '≥ 500.000 t CO2e'], judul: 'Perkiraan emisi Jan–Agu 2026 (skenario tengah)' },
+  tangkapan_2026_persen: { br: [20, 40, 60, 80], lab: ['< 20% (buruk)', '20–40%', '40–60%', '60–80% (sedang)', '≥ 80% (baik)'], judul: '% titik api 2026 di zona tinggi RF', c: ['#D73027', '#FC8D59', '#FEE08B', '#91CF60', '#1A9850'], min: 50, na: '< 50 sel titik api (data sedikit)' }
 };
 const KECC = ['#FFF5EB', '#FDBE85', '#FD8D3C', '#D94701', '#7F2704'];
 function kecStyle(f) {
   const v = $('kecVar').value, d = KECV[v];
   if (!d) return { color: '#495057', weight: 0.8, fillOpacity: 0, dashArray: '2 3' };
+  if (d.min && !(f.properties.sel_api_2026_snpp >= d.min)) return { color: '#5f5a55', weight: 0.6, fillColor: '#CED4DA', fillOpacity: 0.6 };
   let k = 0; while (k < 4 && f.properties[v] >= d.br[k]) k++;
-  return { color: '#5f5a55', weight: 0.6, fillColor: KECC[k], fillOpacity: 0.75 };
+  return { color: '#5f5a55', weight: 0.6, fillColor: (d.c || KECC)[k], fillOpacity: 0.75 };
 }
 const kecLayer = L.geoJSON(window.KECAMATAN, { pane: 'vec', style: kecStyle, onEachFeature: (f, l) => l.bindPopup(kecPopup(f.properties), { maxWidth: 300 }) });
 function kecLegend() {
   const d = KECV[$('kecVar').value], show = $('showKec').checked && d;
   $('legKec').style.display = show ? 'block' : 'none';
-  if (show) $('legKec').innerHTML = `<div class="t">${d.judul} (model ${MAIN})</div>` + d.lab.map((n, i) => `<div class="i"><span class="sw" style="background:${KECC[i]}"></span>${n}</div>`).join('');
+  if (show) $('legKec').innerHTML = `<div class="t">${d.judul} (model ${MAIN})</div>` + d.lab.map((n, i) => `<div class="i"><span class="sw" style="background:${(d.c || KECC)[i]}"></span>${n}</div>`).join('') + (d.na ? `<div class="i"><span class="sw" style="background:#CED4DA"></span>${d.na}</div>` : '');
 }
 $('kecVar').addEventListener('change', () => { kecLayer.setStyle(kecStyle); kecLegend(); });
 for (const p of Object.values(KEC).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan))) { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.kecamatan} (${p.kabupaten})`; $('kecSel').appendChild(o); }
@@ -517,6 +541,29 @@ function drawStats() {
   const kk = Object.values(KEC).sort((a, b) => b.penduduk_zona_tinggi - a.penduduk_zona_tinggi).slice(0, 10);
   $('kecImpact').innerHTML = '<tr><th>Kecamatan</th><th class="n">% zona tinggi</th><th class="n">Penduduk terpapar</th></tr>' + kk.map(p => `<tr class="click" data-id="${p.id}"><td>${p.kecamatan} <span style="color:#6B6762">(${p.kabupaten})</span></td><td class="n">${fmt(p.persen_tinggi_sangat_tinggi, 1)}</td><td class="n">${fmt(p.penduduk_zona_tinggi)}</td></tr>`).join('');
   $('kecImpact').querySelectorAll('tr.click').forEach(tr => tr.addEventListener('click', () => zoomKec(+tr.dataset.id)));
+  drawAnalisis();
+}
+// analisis lanjutan (skrip 13): emisi, tutupan lahan terbakar, kinerja per wilayah, kesepakatan model
+function drawAnalisis() {
+  const A = window.ANALISIS; if (!A) return; $('boxAnalisis').style.display = 'block';
+  const E = A.emisi, mt = v => fmt(v / 1e6, 2);
+  $('emTable').innerHTML = '<tr><th>Skenario</th><th class="n">Gambut terbakar (ha)</th><th class="n">Juta t CO2e</th><th class="n">dari gambut</th></tr>' +
+    E.skenario.map(s => `<tr${s.skenario === 'tengah' ? ' style="font-weight:700"' : ''}><td>${s.skenario}</td><td class="n">${fmt(s.luas_gambut_terbakar_ha)}</td><td class="n">${mt(s.CO2e_kotor_t)}</td><td class="n">${fmt(s.persen_dari_gambut)}%</td></tr>`).join('');
+  const t = E.skenario.find(s => s.skenario === 'tengah');
+  $('emNote').innerHTML = `Area terbakar MODIS MCD64A1 Jan–Agu 2026 (${fmt(t.luas_terbakar_ha)} ha) × konsumsi bahan bakar × faktor emisi, metode IPCC Tier 1 (IPCC 2006; Wetlands Supplement 2013 untuk gambut), GWP AR5. Rentang skenario terutama berasal dari luas gambut (FEG resmi vs Peat-ML) dan kedalaman bakar. Proyeksi indikatif s.d. Oktober (rasio titik api S-NPP ×${fmt(E.faktor_proyeksi_sd_Okt, 2)}): ±${mt(t.proyeksi_CO2e_kotor_sd_Okt_t)} juta t CO2e.`;
+  const lc = A.tutupan_lahan.filter(r => r.terbakar_2026_ha > 100).sort((a, b) => b.terbakar_2026_ha - a.terbakar_2026_ha);
+  $('lcTable').innerHTML = '<tr><th>Tutupan</th><th class="n">Terbakar (ha)</th><th class="n">% zona tinggi</th><th class="n">Api 2026 tertangkap</th></tr>' +
+    lc.map(r => `<tr><td>${r.tutupan}</td><td class="n">${fmt(r.terbakar_2026_ha)}</td><td class="n">${fmt(r.persen_zona_tinggi, 1)}</td><td class="n">${fmt(r.persen_titik_api_2026_di_zona_tinggi, 1)}%</td></tr>`).join('');
+  $('perfKab').innerHTML = '<tr><th>Kabupaten</th><th class="n">AUC 2023–25</th><th class="n">AUC 2026</th><th class="n">Tangkapan 2026</th></tr>' +
+    A.kinerja_kabupaten.map(r => `<tr><td>${r.kabupaten}</td><td class="n">${fmt(r.AUC_RF_uji_2023_2025, 3)}</td><td class="n">${fmt(r.AUC_RF_2026_snpp, 3)}</td><td class="n">${fmt(r.tangkapan_2026_persen, 1)}%</td></tr>`).join('');
+  $('perfKec').innerHTML = '<tr><th>Kecamatan</th><th class="n">Sel api 2026</th><th class="n">Tangkapan</th></tr>' +
+    A.kinerja_kecamatan_terburuk.map(r => `<tr class="click" data-id="${r.id}"><td>${r.kecamatan} <span style="color:#6B6762">(${r.kabupaten})</span></td><td class="n">${fmt(r.sel_api_2026_snpp)}</td><td class="n">${fmt(r.tangkapan_2026_persen, 1)}%</td></tr>`).join('');
+  $('perfKec').querySelectorAll('tr.click').forEach(tr => tr.addEventListener('click', () => { $('kecVar').value = 'tangkapan_2026_persen'; kecLayer.setStyle(kecStyle); zoomKec(+tr.dataset.id); }));
+  const U = A.ketidakpastian;
+  $('agTable').innerHTML = '<tr><th>Model sepakat tinggi</th><th class="n">% luas</th><th class="n">% api uji</th><th class="n">% api 2026</th></tr>' +
+    U.kesepakatan.map(r => `<tr><td>${r.jumlah_model_zona_tinggi} dari 3</td><td class="n">${fmt(r.persen_luas, 1)}</td><td class="n">${fmt(r.persen_api_uji_2023_2025, 1)}</td><td class="n">${fmt(r.persen_api_2026_snpp, 1)}</td></tr>`).join('');
+  const th = U.kepekaan_ambang, t0 = th.find(r => r.geser === 0), lo = th.find(r => r.geser === -0.1);
+  $('agNote').innerHTML = `Lapisan "Kesepakatan 3 model" di tab Lapisan memetakan tabel ini. Kepekaan ambang: menurunkan batas kelas tinggi RF dari ${fmt(t0.ambang_indeks_RF, 3)} ke ${fmt(lo.ambang_indeks_RF, 3)} menambah luas zona tinggi ${fmt(t0.persen_luas_zona_tinggi, 1)}% → ${fmt(lo.persen_luas_zona_tinggi, 1)}% dan tangkapan 2026 ${fmt(t0.tangkapan_2026_persen, 1)}% → ${fmt(lo.tangkapan_2026_persen, 1)}%. Zona ragu (indeks ±0,05 dari ambang): ${fmt(U.zona_ragu_persen_luas, 1)}% luas, ${fmt(U.zona_ragu_persen_api_2026, 1)}% titik api 2026.`;
 }
 
 // ---------- grid 1 km multi-lapis (data/grid3.js) dan RF ringan (data/rf_web.js) ----------
