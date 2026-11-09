@@ -28,6 +28,9 @@
   h2:first-child { margin-top:4px; }
   h3 { font-size:12px; margin:12px 0 4px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
   label.row { display:flex; align-items:center; gap:8px; padding:3px 0; cursor:pointer; font-size:13px; }
+  .leaflet-tooltip.kecLab { background:none; border:none; box-shadow:none; padding:0; font-size:11px; font-weight:600; color:#343A40; white-space:nowrap;
+    text-shadow:0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; pointer-events:none; }
+  .leaflet-tooltip.kecLab::before { display:none; }
   .sw { width:13px; height:13px; border-radius:3px; display:inline-block; border:1px solid rgba(0,0,0,.15); flex:none; }
   .legend { background:var(--tint); border-radius:8px; padding:8px 10px; margin:8px 0 4px; font-size:12px; }
   .legend .t { font-weight:700; margin-bottom:4px; }
@@ -134,15 +137,15 @@
       <select id="opLayer"></select>
       <input type="range" id="opacity" min="0" max="100" value="80">
       <h2>Data vektor</h2>
+      <label class="row"><input type="checkbox" id="showKab" checked> Batas kabupaten</label>
+      <label class="row"><input type="checkbox" id="showKecB"> Batas kecamatan (<span id="nKec">0</span>; nama tampil saat diperbesar)</label>
       <label class="row"><input type="checkbox" id="showKec"> Dampak per kecamatan (klik poligon untuk statistik)</label>
       <select id="kecVar">
         <option value="persen_tinggi_sangat_tinggi">% luas zona bahaya tinggi–sangat tinggi</option>
         <option value="penduduk_zona_tinggi">Penduduk di zona tinggi–sangat tinggi</option>
         <option value="terbakar_2026_ha">Area terbakar 2026 (ha, MODIS)</option>
-        <option value="">Batas kecamatan saja</option>
       </select>
       <div class="legend" id="legKec" style="display:none"></div>
-      <label class="row"><input type="checkbox" id="showKab" checked> Batas kabupaten</label>
       <label class="row"><input type="checkbox" id="showFac"> Fasilitas publik di zona bahaya tinggi (<span id="nFac">0</span>)</label>
       <label class="row"><input type="checkbox" id="showUji"> Titik api 2023–2025 (data uji)</label>
       <select id="ujiYear"><option value="">Semua tahun</option><option>2023</option><option>2024</option><option>2025</option></select>
@@ -318,6 +321,34 @@ $('kabSel').addEventListener('change', e => {
   kabLayer.eachLayer(l => { const on = l.feature.properties.kabupaten === e.target.value; l.setStyle({ weight: on ? 3.5 : 1.2, color: on ? '#D9480F' : '#1E1B18' }); if (on) map.fitBounds(l.getBounds()); });
 });
 $('showKab').addEventListener('change', e => e.target.checked ? kabLayer.addTo(map) : map.removeLayer(kabLayer));
+// batas kecamatan: garis putus-putus (tidak menangkap klik, agar info lokasi tetap jalan) + nama kecamatan mulai zoom 9
+const KEC_ZOOM = 9;
+function labelPoint(geom) {
+  // titik label di dalam poligon: poligon terbesar, lalu tengah segmen terlebar pada beberapa garis lintang
+  const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+  let best = polys[0], bestA = -1;
+  for (const p of polys) { const r = p[0]; let a = 0; for (let i = 0, j = r.length - 1; i < r.length; j = i++) a += r[j][0] * r[i][1] - r[i][0] * r[j][1]; if (Math.abs(a) > bestA) { bestA = Math.abs(a); best = p; } }
+  let y0 = Infinity, y1 = -Infinity; for (const c of best[0]) { y0 = Math.min(y0, c[1]); y1 = Math.max(y1, c[1]); }
+  let pt = null, wBest = -1;
+  for (const f of [0.5, 0.4, 0.6, 0.3, 0.7]) {
+    const y = y0 + (y1 - y0) * f, xs = [];
+    for (const ring of best) for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > y) !== (yj > y)) xs.push(xi + (y - yi) * (xj - xi) / (yj - yi)); }
+    xs.sort((a, b) => a - b);
+    for (let k = 0; k + 1 < xs.length; k += 2) { const w = xs[k + 1] - xs[k]; if (w > wBest) { wBest = w; pt = [y, (xs[k] + xs[k + 1]) / 2]; } }
+  }
+  return pt;
+}
+const kecBatas = L.featureGroup([   // garis gelap putus-putus di atas garis putih agar terbaca di atas raster
+  L.geoJSON(window.KECAMATAN, { pane: 'vec', interactive: false, style: { color: '#FFFFFF', weight: 3, opacity: 0.75, fillOpacity: 0 } }),
+  L.geoJSON(window.KECAMATAN, { pane: 'vec', interactive: false, style: { color: '#212529', weight: 1.2, opacity: 0.95, dashArray: '5 3', fillOpacity: 0 } })]);
+const kecLabels = L.layerGroup(window.KECAMATAN.features.map(f => L.tooltip({ permanent: true, direction: 'center', className: 'kecLab', interactive: false }).setLatLng(labelPoint(f.geometry)).setContent(f.properties.kecamatan)));
+$('nKec').textContent = window.KECAMATAN.features.length;
+function kecLabelsSync() {
+  const on = map.hasLayer(kecBatas) && map.getZoom() >= KEC_ZOOM;
+  if (on && !map.hasLayer(kecLabels)) kecLabels.addTo(map); else if (!on && map.hasLayer(kecLabels)) map.removeLayer(kecLabels);
+}
+map.on('zoomend', kecLabelsSync);
+$('showKecB').addEventListener('change', e => { if (e.target.checked) { kecBatas.addTo(map); if (map.hasLayer(kabLayer)) kabLayer.bringToFront(); } else map.removeLayer(kecBatas); kecLabelsSync(); });
 $('showKec').addEventListener('change', e => { e.target.checked ? kecLayer.addTo(map) : map.removeLayer(kecLayer); kecLegend(); });
 function zoomKec(id) {
   kecLayer.addTo(map); $('showKec').checked = true; kecLegend();
