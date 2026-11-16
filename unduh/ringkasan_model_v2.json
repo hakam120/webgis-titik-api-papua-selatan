@@ -1,4 +1,4 @@
-﻿{
+{
     "versi":  "v2",
     "dibuat":  "2026-10-30 09:41",
     "model_utama":  "RF",
@@ -1283,9 +1283,9 @@
                                                           100
                                                       ]
                              },
-               "AUC_MCD64A1_2023_2025":  0.9202,
                "AUC_FIRMS_2026":  0.7493,
-               "AUC_MCD64A1_2026":  0.8767
+               "AUC_MCD64A1_2023_2025":  0.9128,
+               "AUC_MCD64A1_2026":  0.8759
            },
     "AHP":  {
                 "bobot":  [
@@ -1421,9 +1421,9 @@
                                                            100
                                                        ]
                               },
-                "AUC_MCD64A1_2023_2025":  0.866,
                 "AUC_FIRMS_2026":  0.7681,
-                "AUC_MCD64A1_2026":  0.8363
+                "AUC_MCD64A1_2023_2025":  0.8605,
+                "AUC_MCD64A1_2026":  0.8377
             },
     "RF":  {
                "pohon":  200,
@@ -2353,9 +2353,9 @@
                                                           100
                                                       ]
                              },
-               "AUC_MCD64A1_2023_2025":  0.92,
                "AUC_FIRMS_2026":  0.7994,
-               "AUC_MCD64A1_2026":  0.8957
+               "AUC_MCD64A1_2023_2025":  0.9201,
+               "AUC_MCD64A1_2026":  0.8864
            },
     "KLHK":  {
                  "AUC_latih":  0.6138,
@@ -2448,9 +2448,9 @@
                                                             100
                                                         ]
                                },
-                 "AUC_MCD64A1_2023_2025":  0.5754,
                  "AUC_FIRMS_2026":  0.6058,
-                 "AUC_MCD64A1_2026":  0.604
+                 "AUC_MCD64A1_2023_2025":  0.5719,
+                 "AUC_MCD64A1_2026":  0.5825
              },
     "uji":  {
                 "FIRMS_uji_2023_2025":  {
@@ -2459,15 +2459,15 @@
                                         },
                 "MCD64A1_2023_2025":  {
                                           "nama":  "Area terbakar MODIS MCD64A1 2023–2025",
-                                          "sel":  154336
+                                          "sel":  236796
                                       },
                 "FIRMS_2026":  {
                                    "nama":  "Titik api 2026 (VIIRS S-NPP/NOAA-20/NOAA-21 + MODIS)",
                                    "sel":  220048
                                },
                 "MCD64A1_2026":  {
-                                     "nama":  "Area terbakar MODIS MCD64A1 2026",
-                                     "sel":  89053
+                                     "nama":  "Area terbakar MODIS MCD64A1 2026 (s.d. 2026-09)",
+                                     "sel":  190770
                                  }
             },
     "validasi_per_kelas":  [
@@ -2527,7 +2527,7 @@
                                    "Kelas":  1,
                                    "LuasKm2":  45717.4,
                                    "PersenLuas":  38.58,
-                                   "SelKejadian":  45,
+                                   "SelKejadian":  68,
                                    "PersenSelKejadian":  0.03,
                                    "Rasio":  0.001
                                },
@@ -2537,9 +2537,9 @@
                                    "Kelas":  2,
                                    "LuasKm2":  25305.7,
                                    "PersenLuas":  21.35,
-                                   "SelKejadian":  54,
-                                   "PersenSelKejadian":  0.03,
-                                   "Rasio":  0.002
+                                   "SelKejadian":  272,
+                                   "PersenSelKejadian":  0.11,
+                                   "Rasio":  0.005
                                },
                                {
                                    "Model":  "FR",
@@ -2547,9 +2547,9 @@
                                    "Kelas":  3,
                                    "LuasKm2":  18722,
                                    "PersenLuas":  15.8,
-                                   "SelKejadian":  6022,
-                                   "PersenSelKejadian":  3.9,
-                                   "Rasio":  0.247
+                                   "SelKejadian":  11196,
+                                   "PersenSelKejadian":  4.73,
+                                   "Rasio":  0.299
                                },
                                {
                                    "Model":  "FR",
@@ -2557,9 +2557,9 @@
                                    "Kelas":  4,
                                    "LuasKm2":  15562.3,
                                    "PersenLuas":  13.13,
-                                   "SelKejadian":  37495,
-                                   "PersenSelKejadian":  24.29,
-                                   "Rasio":  1.85
+                                   "SelKejadian":  71885,
+                                   "PersenSelKejadian":  30.36,
+                                   "Rasio":  2.312
                                },
                                {
                                    "Model":  "FR",
@@ -2567,9 +2567,9 @@
                                    "Kelas":  5,
                                    "LuasKm2":  13207.1,
                                    "PersenLuas":  11.14,
-                                   "SelKejadian":  110720,
-                                   "PersenSelKejadian":  71.74,
-                                   "Rasio":  6.438
+                                   "SelKejadian":  153375,
+                                   "PersenSelKejadian":  64.77,
+                                   "Rasio":  5.812
                                },
                                {
                                    "Model":  "FR",
@@ -2627,8 +2627,8 @@
                                    "Kelas":  1,
                                    "LuasKm2":  45717.4,
                                    "PersenLuas":  38.58,
-                                   "SelKejadian":  291,
-                                   "PersenSelKejadian":  0.33,
+                                   "SelKejadian":  565,
+                                   "PersenSelKejadian":  0.3,
                                    "Rasio":  0.008
                                },
                                {
@@ -2637,9 +2637,9 @@
                                    "Kelas":  2,
                                    "LuasKm2":  25305.7,
                                    "PersenLuas":  21.35,
-                                   "SelKejadian":  3999,
-                                   "PersenSelKejadian":  4.49,
-                                   "Rasio":  0.21
+                                   "SelKejadian":  10506,
+                                   "PersenSelKejadian":  5.51,
+                                   "Rasio":  0.258
                                },
                                {
                                    "Model":  "FR",
@@ -2647,9 +2647,9 @@
                                    "Kelas":  3,
                                    "LuasKm2":  18722,
                                    "PersenLuas":  15.8,
-                                   "SelKejadian":  11007,
-                                   "PersenSelKejadian":  12.36,
-                                   "Rasio":  0.782
+                                   "SelKejadian":  24064,
+                                   "PersenSelKejadian":  12.61,
+                                   "Rasio":  0.799
                                },
                                {
                                    "Model":  "FR",
@@ -2657,9 +2657,9 @@
                                    "Kelas":  4,
                                    "LuasKm2":  15562.3,
                                    "PersenLuas":  13.13,
-                                   "SelKejadian":  20809,
-                                   "PersenSelKejadian":  23.37,
-                                   "Rasio":  1.78
+                                   "SelKejadian":  40630,
+                                   "PersenSelKejadian":  21.3,
+                                   "Rasio":  1.622
                                },
                                {
                                    "Model":  "FR",
@@ -2667,9 +2667,9 @@
                                    "Kelas":  5,
                                    "LuasKm2":  13207.1,
                                    "PersenLuas":  11.14,
-                                   "SelKejadian":  52947,
-                                   "PersenSelKejadian":  59.46,
-                                   "Rasio":  5.335
+                                   "SelKejadian":  115005,
+                                   "PersenSelKejadian":  60.28,
+                                   "Rasio":  5.41
                                },
                                {
                                    "Model":  "AHP",
@@ -2728,8 +2728,8 @@
                                    "LuasKm2":  15953.4,
                                    "PersenLuas":  13.46,
                                    "SelKejadian":  42,
-                                   "PersenSelKejadian":  0.03,
-                                   "Rasio":  0.002
+                                   "PersenSelKejadian":  0.02,
+                                   "Rasio":  0.001
                                },
                                {
                                    "Model":  "AHP",
@@ -2737,8 +2737,8 @@
                                    "Kelas":  2,
                                    "LuasKm2":  31900,
                                    "PersenLuas":  26.92,
-                                   "SelKejadian":  0,
-                                   "PersenSelKejadian":  0,
+                                   "SelKejadian":  23,
+                                   "PersenSelKejadian":  0.01,
                                    "Rasio":  0
                                },
                                {
@@ -2747,9 +2747,9 @@
                                    "Kelas":  3,
                                    "LuasKm2":  27578.1,
                                    "PersenLuas":  23.27,
-                                   "SelKejadian":  3705,
-                                   "PersenSelKejadian":  2.4,
-                                   "Rasio":  0.103
+                                   "SelKejadian":  6425,
+                                   "PersenSelKejadian":  2.71,
+                                   "Rasio":  0.117
                                },
                                {
                                    "Model":  "AHP",
@@ -2757,9 +2757,9 @@
                                    "Kelas":  4,
                                    "LuasKm2":  29179,
                                    "PersenLuas":  24.62,
-                                   "SelKejadian":  75030,
-                                   "PersenSelKejadian":  48.61,
-                                   "Rasio":  1.975
+                                   "SelKejadian":  121133,
+                                   "PersenSelKejadian":  51.16,
+                                   "Rasio":  2.078
                                },
                                {
                                    "Model":  "AHP",
@@ -2767,9 +2767,9 @@
                                    "Kelas":  5,
                                    "LuasKm2":  13903.9,
                                    "PersenLuas":  11.73,
-                                   "SelKejadian":  75559,
-                                   "PersenSelKejadian":  48.96,
-                                   "Rasio":  4.173
+                                   "SelKejadian":  109173,
+                                   "PersenSelKejadian":  46.1,
+                                   "Rasio":  3.93
                                },
                                {
                                    "Model":  "AHP",
@@ -2827,9 +2827,9 @@
                                    "Kelas":  1,
                                    "LuasKm2":  15953.4,
                                    "PersenLuas":  13.46,
-                                   "SelKejadian":  35,
-                                   "PersenSelKejadian":  0.04,
-                                   "Rasio":  0.003
+                                   "SelKejadian":  40,
+                                   "PersenSelKejadian":  0.02,
+                                   "Rasio":  0.002
                                },
                                {
                                    "Model":  "AHP",
@@ -2837,9 +2837,9 @@
                                    "Kelas":  2,
                                    "LuasKm2":  31900,
                                    "PersenLuas":  26.92,
-                                   "SelKejadian":  243,
-                                   "PersenSelKejadian":  0.27,
-                                   "Rasio":  0.01
+                                   "SelKejadian":  1716,
+                                   "PersenSelKejadian":  0.9,
+                                   "Rasio":  0.033
                                },
                                {
                                    "Model":  "AHP",
@@ -2847,9 +2847,9 @@
                                    "Kelas":  3,
                                    "LuasKm2":  27578.1,
                                    "PersenLuas":  23.27,
-                                   "SelKejadian":  5605,
-                                   "PersenSelKejadian":  6.29,
-                                   "Rasio":  0.27
+                                   "SelKejadian":  14508,
+                                   "PersenSelKejadian":  7.6,
+                                   "Rasio":  0.327
                                },
                                {
                                    "Model":  "AHP",
@@ -2857,9 +2857,9 @@
                                    "Kelas":  4,
                                    "LuasKm2":  29179,
                                    "PersenLuas":  24.62,
-                                   "SelKejadian":  45905,
-                                   "PersenSelKejadian":  51.55,
-                                   "Rasio":  2.094
+                                   "SelKejadian":  91173,
+                                   "PersenSelKejadian":  47.79,
+                                   "Rasio":  1.941
                                },
                                {
                                    "Model":  "AHP",
@@ -2867,9 +2867,9 @@
                                    "Kelas":  5,
                                    "LuasKm2":  13903.9,
                                    "PersenLuas":  11.73,
-                                   "SelKejadian":  37265,
-                                   "PersenSelKejadian":  41.85,
-                                   "Rasio":  3.567
+                                   "SelKejadian":  83333,
+                                   "PersenSelKejadian":  43.68,
+                                   "Rasio":  3.723
                                },
                                {
                                    "Model":  "RF",
@@ -2927,8 +2927,8 @@
                                    "Kelas":  1,
                                    "LuasKm2":  68495,
                                    "PersenLuas":  57.79,
-                                   "SelKejadian":  63,
-                                   "PersenSelKejadian":  0.04,
+                                   "SelKejadian":  118,
+                                   "PersenSelKejadian":  0.05,
                                    "Rasio":  0.001
                                },
                                {
@@ -2937,9 +2937,9 @@
                                    "Kelas":  2,
                                    "LuasKm2":  11614,
                                    "PersenLuas":  9.8,
-                                   "SelKejadian":  844,
-                                   "PersenSelKejadian":  0.55,
-                                   "Rasio":  0.056
+                                   "SelKejadian":  1856,
+                                   "PersenSelKejadian":  0.78,
+                                   "Rasio":  0.08
                                },
                                {
                                    "Model":  "RF",
@@ -2947,9 +2947,9 @@
                                    "Kelas":  3,
                                    "LuasKm2":  9923.6,
                                    "PersenLuas":  8.37,
-                                   "SelKejadian":  6352,
-                                   "PersenSelKejadian":  4.12,
-                                   "Rasio":  0.492
+                                   "SelKejadian":  10368,
+                                   "PersenSelKejadian":  4.38,
+                                   "Rasio":  0.523
                                },
                                {
                                    "Model":  "RF",
@@ -2957,9 +2957,9 @@
                                    "Kelas":  4,
                                    "LuasKm2":  13061.9,
                                    "PersenLuas":  11.02,
-                                   "SelKejadian":  32008,
-                                   "PersenSelKejadian":  20.74,
-                                   "Rasio":  1.882
+                                   "SelKejadian":  47187,
+                                   "PersenSelKejadian":  19.93,
+                                   "Rasio":  1.808
                                },
                                {
                                    "Model":  "RF",
@@ -2967,9 +2967,9 @@
                                    "Kelas":  5,
                                    "LuasKm2":  15419.9,
                                    "PersenLuas":  13.01,
-                                   "SelKejadian":  115069,
-                                   "PersenSelKejadian":  74.56,
-                                   "Rasio":  5.73
+                                   "SelKejadian":  177267,
+                                   "PersenSelKejadian":  74.86,
+                                   "Rasio":  5.754
                                },
                                {
                                    "Model":  "RF",
@@ -3027,9 +3027,9 @@
                                    "Kelas":  1,
                                    "LuasKm2":  68495,
                                    "PersenLuas":  57.79,
-                                   "SelKejadian":  1332,
-                                   "PersenSelKejadian":  1.5,
-                                   "Rasio":  0.026
+                                   "SelKejadian":  5242,
+                                   "PersenSelKejadian":  2.75,
+                                   "Rasio":  0.048
                                },
                                {
                                    "Model":  "RF",
@@ -3037,9 +3037,9 @@
                                    "Kelas":  2,
                                    "LuasKm2":  11614,
                                    "PersenLuas":  9.8,
-                                   "SelKejadian":  3028,
-                                   "PersenSelKejadian":  3.4,
-                                   "Rasio":  0.347
+                                   "SelKejadian":  8743,
+                                   "PersenSelKejadian":  4.58,
+                                   "Rasio":  0.468
                                },
                                {
                                    "Model":  "RF",
@@ -3047,9 +3047,9 @@
                                    "Kelas":  3,
                                    "LuasKm2":  9923.6,
                                    "PersenLuas":  8.37,
-                                   "SelKejadian":  5198,
-                                   "PersenSelKejadian":  5.84,
-                                   "Rasio":  0.697
+                                   "SelKejadian":  12728,
+                                   "PersenSelKejadian":  6.67,
+                                   "Rasio":  0.797
                                },
                                {
                                    "Model":  "RF",
@@ -3057,9 +3057,9 @@
                                    "Kelas":  4,
                                    "LuasKm2":  13061.9,
                                    "PersenLuas":  11.02,
-                                   "SelKejadian":  16849,
-                                   "PersenSelKejadian":  18.92,
-                                   "Rasio":  1.717
+                                   "SelKejadian":  39350,
+                                   "PersenSelKejadian":  20.63,
+                                   "Rasio":  1.872
                                },
                                {
                                    "Model":  "RF",
@@ -3067,9 +3067,9 @@
                                    "Kelas":  5,
                                    "LuasKm2":  15419.9,
                                    "PersenLuas":  13.01,
-                                   "SelKejadian":  62646,
-                                   "PersenSelKejadian":  70.35,
-                                   "Rasio":  5.407
+                                   "SelKejadian":  124707,
+                                   "PersenSelKejadian":  65.37,
+                                   "Rasio":  5.024
                                },
                                {
                                    "Model":  "KLHK",
@@ -3117,9 +3117,9 @@
                                    "Kelas":  1,
                                    "LuasKm2":  16633.3,
                                    "PersenLuas":  14.07,
-                                   "SelKejadian":  3022,
-                                   "PersenSelKejadian":  1.96,
-                                   "Rasio":  0.139
+                                   "SelKejadian":  3726,
+                                   "PersenSelKejadian":  1.57,
+                                   "Rasio":  0.112
                                },
                                {
                                    "Model":  "KLHK",
@@ -3127,9 +3127,9 @@
                                    "Kelas":  2,
                                    "LuasKm2":  87611.6,
                                    "PersenLuas":  74.11,
-                                   "SelKejadian":  125748,
-                                   "PersenSelKejadian":  81.48,
-                                   "Rasio":  1.1
+                                   "SelKejadian":  196984,
+                                   "PersenSelKejadian":  83.2,
+                                   "Rasio":  1.123
                                },
                                {
                                    "Model":  "KLHK",
@@ -3137,9 +3137,9 @@
                                    "Kelas":  3,
                                    "LuasKm2":  13502.5,
                                    "PersenLuas":  11.42,
-                                   "SelKejadian":  25534,
-                                   "PersenSelKejadian":  16.55,
-                                   "Rasio":  1.449
+                                   "SelKejadian":  36041,
+                                   "PersenSelKejadian":  15.22,
+                                   "Rasio":  1.333
                                },
                                {
                                    "Model":  "KLHK",
@@ -3147,9 +3147,9 @@
                                    "Kelas":  4,
                                    "LuasKm2":  473.5,
                                    "PersenLuas":  0.4,
-                                   "SelKejadian":  20,
+                                   "SelKejadian":  21,
                                    "PersenSelKejadian":  0.01,
-                                   "Rasio":  0.032
+                                   "Rasio":  0.022
                                },
                                {
                                    "Model":  "KLHK",
@@ -3197,9 +3197,9 @@
                                    "Kelas":  1,
                                    "LuasKm2":  16633.3,
                                    "PersenLuas":  14.07,
-                                   "SelKejadian":  1093,
-                                   "PersenSelKejadian":  1.23,
-                                   "Rasio":  0.087
+                                   "SelKejadian":  2542,
+                                   "PersenSelKejadian":  1.33,
+                                   "Rasio":  0.095
                                },
                                {
                                    "Model":  "KLHK",
@@ -3207,9 +3207,9 @@
                                    "Kelas":  2,
                                    "LuasKm2":  87611.6,
                                    "PersenLuas":  74.11,
-                                   "SelKejadian":  68060,
-                                   "PersenSelKejadian":  76.45,
-                                   "Rasio":  1.032
+                                   "SelKejadian":  155008,
+                                   "PersenSelKejadian":  81.27,
+                                   "Rasio":  1.097
                                },
                                {
                                    "Model":  "KLHK",
@@ -3217,9 +3217,9 @@
                                    "Kelas":  3,
                                    "LuasKm2":  13502.5,
                                    "PersenLuas":  11.42,
-                                   "SelKejadian":  18214,
-                                   "PersenSelKejadian":  20.46,
-                                   "Rasio":  1.791
+                                   "SelKejadian":  31493,
+                                   "PersenSelKejadian":  16.51,
+                                   "Rasio":  1.446
                                },
                                {
                                    "Model":  "KLHK",
@@ -3227,9 +3227,9 @@
                                    "Kelas":  4,
                                    "LuasKm2":  473.5,
                                    "PersenLuas":  0.4,
-                                   "SelKejadian":  1664,
-                                   "PersenSelKejadian":  1.87,
-                                   "Rasio":  4.667
+                                   "SelKejadian":  1691,
+                                   "PersenSelKejadian":  0.89,
+                                   "Rasio":  2.214
                                }
                            ],
     "dampak_kabupaten":  [
@@ -3257,8 +3257,8 @@
                                  "titik_api_2026_zona_tinggi":  132270,
                                  "titik_api_7hari":  10565,
                                  "titik_api_7hari_zona_tinggi":  7396,
-                                 "terbakar_2026_ha":  80297,
-                                 "terbakar_2026_zona_tinggi_ha":  75008,
+                                 "terbakar_2026_ha":  173890,
+                                 "terbakar_2026_zona_tinggi_ha":  156347,
                                  "kehilangan_hutan_2024_2025_ha":  27918,
                                  "kabupaten":  "Merauke"
                              },
@@ -3286,8 +3286,8 @@
                                  "titik_api_2026_zona_tinggi":  18493,
                                  "titik_api_7hari":  894,
                                  "titik_api_7hari_zona_tinggi":  278,
-                                 "terbakar_2026_ha":  6798,
-                                 "terbakar_2026_zona_tinggi_ha":  3840,
+                                 "terbakar_2026_ha":  11660,
+                                 "terbakar_2026_zona_tinggi_ha":  6995,
                                  "kehilangan_hutan_2024_2025_ha":  266,
                                  "kabupaten":  "Mappi"
                              },
@@ -3315,8 +3315,8 @@
                                  "titik_api_2026_zona_tinggi":  3408,
                                  "titik_api_7hari":  392,
                                  "titik_api_7hari_zona_tinggi":  24,
-                                 "terbakar_2026_ha":  1335,
-                                 "terbakar_2026_zona_tinggi_ha":  557,
+                                 "terbakar_2026_ha":  4574,
+                                 "terbakar_2026_zona_tinggi_ha":  625,
                                  "kehilangan_hutan_2024_2025_ha":  2793,
                                  "kabupaten":  "Boven Digoel"
                              },
@@ -3344,7 +3344,7 @@
                                  "titik_api_2026_zona_tinggi":  827,
                                  "titik_api_7hari":  46,
                                  "titik_api_7hari_zona_tinggi":  7,
-                                 "terbakar_2026_ha":  623,
+                                 "terbakar_2026_ha":  646,
                                  "terbakar_2026_zona_tinggi_ha":  90,
                                  "kehilangan_hutan_2024_2025_ha":  1000,
                                  "kabupaten":  "Asmat"
@@ -3355,49 +3355,49 @@
                                "fungsi_kawasan":  "APL (di luar kawasan hutan)",
                                "luas_ha":  1324620,
                                "zona_tinggi_ha":  343105,
-                               "terbakar_2026_ha":  4191
+                               "terbakar_2026_ha":  12104
                            },
                            {
                                "fungsi_kawasan":  "Hutan Lindung",
                                "luas_ha":  1465611,
                                "zona_tinggi_ha":  180865,
-                               "terbakar_2026_ha":  3046
+                               "terbakar_2026_ha":  4500
                            },
                            {
                                "fungsi_kawasan":  "KSA/KPA",
                                "luas_ha":  81902,
                                "zona_tinggi_ha":  5858,
-                               "terbakar_2026_ha":  0
+                               "terbakar_2026_ha":  1255
                            },
                            {
                                "fungsi_kawasan":  "Suaka Margasatwa",
                                "luas_ha":  816861,
                                "zona_tinggi_ha":  463537,
-                               "terbakar_2026_ha":  20028
+                               "terbakar_2026_ha":  33943
                            },
                            {
                                "fungsi_kawasan":  "Taman Nasional",
                                "luas_ha":  775823,
                                "zona_tinggi_ha":  391008,
-                               "terbakar_2026_ha":  11269
+                               "terbakar_2026_ha":  24347
                            },
                            {
                                "fungsi_kawasan":  "Hutan Produksi Terbatas",
                                "luas_ha":  2826322,
                                "zona_tinggi_ha":  342664,
-                               "terbakar_2026_ha":  8996
+                               "terbakar_2026_ha":  17444
                            },
                            {
                                "fungsi_kawasan":  "Hutan Produksi Tetap",
                                "luas_ha":  2456471,
                                "zona_tinggi_ha":  242821,
-                               "terbakar_2026_ha":  7358
+                               "terbakar_2026_ha":  17849
                            },
                            {
                                "fungsi_kawasan":  "Hutan Produksi Konversi",
                                "luas_ha":  2103614,
                                "zona_tinggi_ha":  878317,
-                               "terbakar_2026_ha":  34165
+                               "terbakar_2026_ha":  79328
                            },
                            {
                                "fungsi_kawasan":  "Tubuh air",

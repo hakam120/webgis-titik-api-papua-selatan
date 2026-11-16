@@ -144,7 +144,7 @@
         <option value="persen_tinggi_sangat_tinggi">% luas zona bahaya tinggi–sangat tinggi</option>
         <option value="penduduk_zona_tinggi">Penduduk di zona tinggi–sangat tinggi</option>
         <option value="terbakar_2026_ha">Area terbakar 2026 (ha, MODIS)</option>
-        <option value="emisi_2026_CO2e_t">Perkiraan emisi kebakaran 2026 (t CO2e, Jan–Agu)</option>
+        <option value="emisi_2026_CO2e_t">Perkiraan emisi kebakaran 2026 (t CO2e, Jan–Sep)</option>
         <option value="tangkapan_2026_persen">Kinerja model: % titik api 2026 di zona tinggi</option>
       </select>
       <div class="legend" id="legKec" style="display:none"></div>
@@ -326,7 +326,7 @@ function kecPopup(p) {
   <tr><td>Area terbakar 2026 (MODIS)</td><td>${fmt(p.terbakar_2026_ha)} ha</td></tr>
   <tr><td>Kehilangan hutan 2024–2025</td><td>${fmt(p.kehilangan_hutan_2024_2025_ha)} ha</td></tr>
   ${p.emisi_2026_CO2e_t !== undefined ? `<tr><td>Gambut terbakar 2026 (Peat-ML)</td><td>${fmt(p.gambut_terbakar_2026_ha)} ha</td></tr>
-  <tr><td>Perkiraan emisi Jan–Agu 2026</td><td><b>${fmt(p.emisi_2026_CO2e_t)}</b> t CO2e<br><span style="color:#6B6762">rentang ${fmt(p.emisi_2026_CO2e_rendah_t)}–${fmt(p.emisi_2026_CO2e_tinggi_t)}</span></td></tr>
+  <tr><td>Perkiraan emisi Jan–Sep 2026</td><td><b>${fmt(p.emisi_2026_CO2e_t)}</b> t CO2e<br><span style="color:#6B6762">rentang ${fmt(p.emisi_2026_CO2e_rendah_t)}–${fmt(p.emisi_2026_CO2e_tinggi_t)}</span></td></tr>
   <tr><td>Kinerja model 2026</td><td>${p.sel_api_2026_snpp >= 50 ? `<b>${fmt(p.tangkapan_2026_persen, 1)}%</b> titik api di zona tinggi (${p.kinerja_2026})` : `data sedikit (${fmt(p.sel_api_2026_snpp)} sel api)`}</td></tr>` : ''}</table>
   <span style="color:#6B6762;font-size:11px">*saat model dijalankan; lihat tab Terkini untuk data terbaru</span>`;
 }
@@ -335,7 +335,7 @@ const KECV = {
   persen_tinggi_sangat_tinggi: { br: [10, 25, 50, 75], lab: ['< 10%', '10–25%', '25–50%', '50–75%', '≥ 75%'], judul: '% luas zona tinggi–sangat tinggi' },
   penduduk_zona_tinggi: { br: [500, 2000, 5000, 10000], lab: ['< 500', '500–2.000', '2.000–5.000', '5.000–10.000', '≥ 10.000 jiwa'], judul: 'Penduduk di zona tinggi–sangat tinggi' },
   terbakar_2026_ha: { br: [100, 1000, 5000, 10000], lab: ['< 100 ha', '100–1.000', '1.000–5.000', '5.000–10.000', '≥ 10.000 ha'], judul: 'Area terbakar 2026 (MODIS)' },
-  emisi_2026_CO2e_t: { br: [1000, 10000, 100000, 500000], lab: ['< 1.000 t', '1.000–10.000', '10.000–100.000', '100.000–500.000', '≥ 500.000 t CO2e'], judul: 'Perkiraan emisi Jan–Agu 2026 (skenario tengah)' },
+  emisi_2026_CO2e_t: { br: [1000, 10000, 100000, 500000], lab: ['< 1.000 t', '1.000–10.000', '10.000–100.000', '100.000–500.000', '≥ 500.000 t CO2e'], judul: 'Perkiraan emisi Jan–Sep 2026 (skenario tengah)' },
   tangkapan_2026_persen: { br: [20, 40, 60, 80], lab: ['< 20% (buruk)', '20–40%', '40–60%', '60–80% (sedang)', '≥ 80% (baik)'], judul: '% titik api 2026 di zona tinggi RF', c: ['#D73027', '#FC8D59', '#FEE08B', '#91CF60', '#1A9850'], min: 50, na: '< 50 sel titik api (data sedikit)' }
 };
 const KECC = ['#FFF5EB', '#FDBE85', '#FD8D3C', '#D94701', '#7F2704'];
@@ -625,7 +625,7 @@ function drawAnalisis() {
   $('emTable').innerHTML = '<tr><th>Skenario</th><th class="n">Gambut terbakar (ha)</th><th class="n">Juta t CO2e</th><th class="n">dari gambut</th></tr>' +
     E.skenario.map(s => `<tr${s.skenario === 'tengah' ? ' style="font-weight:700"' : ''}><td>${s.skenario}</td><td class="n">${fmt(s.luas_gambut_terbakar_ha)}</td><td class="n">${mt(s.CO2e_kotor_t)}</td><td class="n">${fmt(s.persen_dari_gambut)}%</td></tr>`).join('');
   const t = E.skenario.find(s => s.skenario === 'tengah');
-  $('emNote').innerHTML = `Area terbakar MODIS MCD64A1 Jan–Agu 2026 (${fmt(t.luas_terbakar_ha)} ha) × konsumsi bahan bakar × faktor emisi, metode IPCC Tier 1 (IPCC 2006; Wetlands Supplement 2013 untuk gambut), GWP AR5. Rentang skenario terutama berasal dari luas gambut (FEG resmi vs Peat-ML) dan kedalaman bakar. Proyeksi indikatif s.d. Oktober (rasio titik api S-NPP ×${fmt(E.faktor_proyeksi_sd_Okt, 2)}): ±${mt(t.proyeksi_CO2e_kotor_sd_Okt_t)} juta t CO2e.`;
+  $('emNote').innerHTML = `Area terbakar MODIS MCD64A1 Jan–Sep 2026 (${fmt(t.luas_terbakar_ha)} ha) × konsumsi bahan bakar × faktor emisi, metode IPCC Tier 1 (IPCC 2006; Wetlands Supplement 2013 untuk gambut), GWP AR5. Rentang skenario terutama berasal dari luas gambut (FEG resmi vs Peat-ML) dan kedalaman bakar. Proyeksi indikatif s.d. Oktober (rasio titik api S-NPP ×${fmt(E.faktor_proyeksi_sd_Okt, 2)}): ±${mt(t.proyeksi_CO2e_kotor_sd_Okt_t)} juta t CO2e.`;
   const lc = A.tutupan_lahan.filter(r => r.terbakar_2026_ha > 100).sort((a, b) => b.terbakar_2026_ha - a.terbakar_2026_ha);
   $('lcTable').innerHTML = '<tr><th>Tutupan</th><th class="n">Terbakar (ha)</th><th class="n">% zona tinggi</th><th class="n">Api 2026 tertangkap</th></tr>' +
     lc.map(r => `<tr><td>${r.tutupan}</td><td class="n">${fmt(r.terbakar_2026_ha)}</td><td class="n">${fmt(r.persen_zona_tinggi, 1)}</td><td class="n">${fmt(r.persen_titik_api_2026_di_zona_tinggi, 1)}%</td></tr>`).join('');
