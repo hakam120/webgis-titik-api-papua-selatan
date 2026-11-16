@@ -148,6 +148,14 @@
         <option value="tangkapan_2026_persen">Kinerja model: % titik api 2026 di zona tinggi</option>
       </select>
       <div class="legend" id="legKec" style="display:none"></div>
+      <div id="boxKej" style="display:none">
+        <h2>Kejadian kebakaran (delineasi)</h2>
+        <label class="row"><input type="checkbox" id="showKej"> Kejadian kebakaran tahun</label>
+        <select id="kejYear"></select>
+        <label class="row"><input type="checkbox" id="showAsal" checked> Asal api indikatif (titik api pertama)</label>
+        <div class="legend" id="legKej" style="display:none"></div>
+        <p class="note">Poligon = area terbakar MODIS MCD64A1 yang digabung per kejadian (bertetangga, selisih tanggal bakar ≤ 8 hari). Oranye = terkait titik api VIIRS (≤ 500 m, ≤ 8 hari); abu-abu = tanpa titik api. Titik merah = titik api pertama tiap kejadian, indikasi lokasi penyulutan (bukan bukti pelaku). Klik poligon untuk rincian.</p>
+      </div>
       <label class="row"><input type="checkbox" id="showFac"> Fasilitas publik di zona bahaya tinggi (<span id="nFac">0</span>)</label>
       <label class="row"><input type="checkbox" id="showUji"> Titik api 2023–2025 (data uji)</label>
       <select id="ujiYear"><option value="">Semua tahun</option><option>2023</option><option>2024</option><option>2025</option></select>
@@ -220,6 +228,14 @@
       <table id="impactTable"></table>
       <h2>Kecamatan paling terpapar</h2>
       <table id="kecImpact"></table>
+      <div id="boxDelin" style="display:none">
+        <h2>Delineasi kejadian kebakaran 2015–2026</h2>
+        <table id="delTable"></table>
+        <p class="note" id="delNote"></p>
+        <h2>Asal api vs kawasan yang terbakar</h2>
+        <table id="asalTable"></table>
+        <p class="note" id="asalNote"></p>
+      </div>
       <div id="boxAnalisis" style="display:none">
         <h2>Perkiraan emisi kebakaran 2026</h2>
         <table id="emTable"></table>
@@ -244,7 +260,7 @@
       <p><b>Model.</b> 15 parameter: tutupan lahan, curah hujan Agu–Nov, suhu udara, kelembapan relatif, Fire Weather Index, fraksi gambut, frekuensi genangan, jarak ke permukiman, jalan, sungai, kehilangan hutan 2013–2022, fungsi kawasan hutan, perizinan, elevasi dan kemiringan (DEMNAS). Tiga model: Rasio Frekuensi, AHP, Random Forest. Latih 2015–2022, uji 2023–2025 dan 2026.</p>
       <p><b>Nilai tambah.</b> (1) Pemodelan on-the-fly di peramban: Random Forest, AHP dengan bobot yang dapat diubah, atau Rasio Frekuensi dengan pilihan parameter; skenario iklim (normal, kemarau 2026 dengan anomali hujan, suhu, kelembapan, dan FWI terukur per sel, atau perubahan seragam yang diatur sendiri); ambang kelas (batas nilai kondisi normal sehingga luas zona bahaya mengikuti skenario, proporsi model, kuantil, interval sama, manual); validasi terhadap data kejadian dan rentang tanggal pilihan; dampak per kabupaten langsung. (2) Animasi waktu titik api 2026. (3) Info lokasi: tombol ⓘ lalu klik peta. (4) Unduh hasil: GeoTIFF, PNG, CSV, JSON, dan titik api terpilih.</p>
       <p><b>Sumber data.</b> NASA FIRMS; MODIS MCD64A1 (Microsoft Planetary Computer); BIG Satu Peta (gambut FEG, KHG, rawan karhutla KLHK, kawasan hutan, PBPH, izin sawit, PIPPIB, mangrove, sawah, kecamatan); ESA WorldCover 2021; Esri/IO LULC; Hansen GFC v1.13; JRC Global Surface Water; CHIRPS v3; Copernicus ERA5-Land dan CEMS Fire Weather Index; DEMNAS (BIG, Ina-Geoportal; celah pesisir diisi Copernicus DEM); Peat-ML; GHSL 2025; Meta HRSL 2020 + Sensus Penduduk 2020 (BPS); Google Open Buildings v3; OpenStreetMap; geoBoundaries.</p>
-      <p><b>Unduh.</b> <a href="unduh/ringkasan_model_v2.json" download>Ringkasan model (JSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kabupaten.geojson" download>Dampak per kabupaten (GeoJSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kecamatan.geojson" download>Dampak per kecamatan (GeoJSON)</a> · <a href="unduh/tabel_dampak_v2_per_kecamatan.csv" download>Tabel kecamatan (CSV)</a> · <a href="unduh/tabel_emisi_2026.csv" download>Emisi 2026 (CSV)</a> · <a href="unduh/tabel_kinerja_dampak_lanjutan_per_kecamatan.csv" download>Kinerja &amp; emisi per kecamatan (CSV)</a></p>
+      <p><b>Unduh.</b> <a href="unduh/ringkasan_model_v2.json" download>Ringkasan model (JSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kabupaten.geojson" download>Dampak per kabupaten (GeoJSON)</a> · <a href="unduh/dampak_bahaya_api_v2_kecamatan.geojson" download>Dampak per kecamatan (GeoJSON)</a> · <a href="unduh/tabel_dampak_v2_per_kecamatan.csv" download>Tabel kecamatan (CSV)</a> · <a href="unduh/tabel_emisi_2026.csv" download>Emisi 2026 (CSV)</a> · <a href="unduh/tabel_kinerja_dampak_lanjutan_per_kecamatan.csv" download>Kinerja &amp; emisi per kecamatan (CSV)</a> · <a href="unduh/kejadian_kebakaran_2015_2026.geojson" download>Kejadian kebakaran 2015–2026 (GeoJSON)</a> · <a href="unduh/kejadian_kebakaran_2015_2026.csv" download>Kejadian kebakaran (CSV)</a> · <a href="unduh/asal_api_2015_2026.geojson" download>Asal api indikatif (GeoJSON)</a></p>
       <p class="note">Tim: Rizki Maulana (15123070), Muhammad Hakam Al-Asyam (15123044), Nurrachman Alwy Sumintardja (15123100), Hafzulh Usmu Alfalah (12823048), Fauzan Rizki (12823030).</p>
       <p class="note">Titik api adalah indikasi, bukan konfirmasi kebakaran di lapangan. Interpretasi kode fungsi kawasan hutan bersumber dari atribut Satu Peta. Produk ini untuk keperluan akademik.</p>
     </section>
@@ -258,6 +274,7 @@
 <script src="data/kabupaten.js"></script>
 <script src="data/kecamatan.js"></script>
 <script src="data/analisis_v2.js"></script>
+<script src="data/delineasi.js"></script>
 <script src="data/titik_api_7hari.js"></script>
 <script src="data/arsip_harian.js"></script>
 <script src="data/fasilitas.js"></script>
@@ -372,6 +389,45 @@ function kecLabelsSync() {
   if (on && !map.hasLayer(kecLabels)) kecLabels.addTo(map); else if (!on && map.hasLayer(kecLabels)) map.removeLayer(kecLabels);
 }
 map.on('zoomend', kecLabelsSync);
+// ---------- kejadian kebakaran: delineasi area terbakar MCD64A1 + titik api VIIRS (skrip 16) ----------
+const DEL = window.DELINEASI; let kejLayer = null, asalLayer = null;
+const fmtTgl = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '–';
+function kejPopup(p) {
+  return `<b>Kejadian ${p.id}</b> · ${p.kecamatan || '–'} (${p.kabupaten || '–'})<table>
+  <tr><td>Luas terbakar (MODIS)</td><td><b>${fmt(p.luas_ha)} ha</b></td></tr>
+  <tr><td>Tanggal bakar</td><td>${fmtTgl(p.tanggal_awal)} – ${fmtTgl(p.tanggal_akhir)} (${p.durasi_hari} hari)</td></tr>
+  <tr><td>Tutupan · kawasan dominan</td><td>${p.tutupan_dominan} · ${p.kawasan_dominan}</td></tr>
+  <tr><td>Konsesi dominan</td><td>${p.konsesi_dominan}</td></tr>
+  <tr><td>Gambut (Peat-ML)</td><td>${fmt(p.gambut_ha)} ha</td></tr>
+  <tr><td>Zona tinggi RF</td><td>${fmt(p.persen_zona_tinggi_RF, 1)}% luas</td></tr>
+  <tr><td>Titik api VIIRS S-NPP</td><td><b>${fmt(p.titik_snpp)}</b>${p.titik_semua_sensor != null ? ` (semua sensor ${fmt(p.titik_semua_sensor)})` : ''} · FRP ${fmt(p.frp_total_MW)} MW</td></tr>
+  <tr><td>Asal api (${p.asal_dari})</td><td>${fmtTgl(p.asal_tanggal)} · ${p.asal_kawasan} · ${p.asal_konsesi}</td></tr>
+  <tr><td>Di lokasi asal api</td><td>kelas RF ${p.asal_kelas_RF}; ${fmt(p.asal_jarak_jalan_m / 1000, 1)} km dari jalan, ${fmt(p.asal_jarak_permukiman_m / 1000, 1)} km dari permukiman</td></tr></table>`;
+}
+if (DEL) {
+  $('boxKej').style.display = 'block';
+  for (const r of DEL.ringkasan.filter(r => r.luas_terbakar_ha > 0).sort((a, b) => b.tahun - a.tahun)) {
+    const o = document.createElement('option'); o.value = r.tahun; o.textContent = `${r.tahun}${r.tahun === 2026 ? ' (Jan–Sep)' : ''} · ${fmt(r.luas_terbakar_ha)} ha`; $('kejYear').appendChild(o);
+  }
+}
+async function showKej() {
+  if (kejLayer) { map.removeLayer(kejLayer); kejLayer = null; } if (asalLayer) { map.removeLayer(asalLayer); asalLayer = null; }
+  const on = $('showKej').checked; $('legKej').style.display = on ? 'block' : 'none'; if (!on || !DEL) return;
+  const y = +$('kejYear').value;
+  if (!(window.KEJADIAN && window.KEJADIAN[y])) { $('legKej').innerHTML = 'Memuat data kejadian…'; await loadScript(`data/kejadian/kejadian_${y}.js`); }
+  if (!$('showKej').checked || +$('kejYear').value !== y) return;
+  const K = window.KEJADIAN[y];
+  kejLayer = L.geoJSON(K.poligon, { pane: 'vec', style: f => f.properties.terdeteksi_titik_api ? { color: '#7F2704', weight: 0.8, fillColor: '#F76707', fillOpacity: 0.55 } : { color: '#495057', weight: 0.8, fillColor: '#ADB5BD', fillOpacity: 0.55 },
+    onEachFeature: (f, l) => l.bindPopup(kejPopup(f.properties), { maxWidth: 340 }) }).addTo(map);
+  if ($('showAsal').checked) asalLayer = L.geoJSON(K.asal, { pane: 'pts', pointToLayer: (f, ll) => L.circleMarker(ll, { radius: 3.5, color: '#FFFFFF', weight: 1, fillColor: '#C92A2A', fillOpacity: 1 }),
+    onEachFeature: (f, l) => l.bindPopup(`<b>Asal api indikatif</b><br>${fmtTgl(f.properties.tanggal)} · ${f.properties.kawasan} · ${f.properties.konsesi}<br>Kejadian ${f.properties.id}: ${fmt(f.properties.luas_ha)} ha, terutama di ${f.properties.kawasan_terbakar}`) }).addTo(map);
+  const r = DEL.ringkasan.find(x => x.tahun === y);
+  $('legKej').innerHTML = `<div class="t">Kejadian ${y}${y === 2026 ? ' (area terbakar s.d. September)' : ''}</div>
+    <div class="i"><span class="sw" style="background:#F76707"></span>Terkait titik api VIIRS: ${fmt(r.kejadian_terdeteksi_titik_api)} kejadian (${fmt(r.persen_luas_terdeteksi, 1)}% luas)</div>
+    <div class="i"><span class="sw" style="background:#ADB5BD"></span>Tanpa titik api: ${fmt(r.kejadian_min_10ha - r.kejadian_terdeteksi_titik_api)} kejadian</div>
+    <div class="i"><span class="sw" style="background:#C92A2A;border-radius:50%"></span>Asal api indikatif (titik api pertama)</div>`;
+}
+$('showKej').addEventListener('change', showKej); $('kejYear').addEventListener('change', showKej); $('showAsal').addEventListener('change', showKej);
 $('showKecB').addEventListener('change', e => { if (e.target.checked) { kecBatas.addTo(map); if (map.hasLayer(kabLayer)) kabLayer.bringToFront(); } else map.removeLayer(kecBatas); kecLabelsSync(); });
 $('showKec').addEventListener('change', e => { e.target.checked ? kecLayer.addTo(map) : map.removeLayer(kecLayer); kecLegend(); });
 function zoomKec(id) {
@@ -542,6 +598,25 @@ function drawStats() {
   $('kecImpact').innerHTML = '<tr><th>Kecamatan</th><th class="n">% zona tinggi</th><th class="n">Penduduk terpapar</th></tr>' + kk.map(p => `<tr class="click" data-id="${p.id}"><td>${p.kecamatan} <span style="color:#6B6762">(${p.kabupaten})</span></td><td class="n">${fmt(p.persen_tinggi_sangat_tinggi, 1)}</td><td class="n">${fmt(p.penduduk_zona_tinggi)}</td></tr>`).join('');
   $('kecImpact').querySelectorAll('tr.click').forEach(tr => tr.addEventListener('click', () => zoomKec(+tr.dataset.id)));
   drawAnalisis();
+  drawDelineasi();
+}
+// delineasi kejadian kebakaran (skrip 16): ringkasan per tahun dan asal api vs kawasan yang terbakar
+function drawDelineasi() {
+  const D = window.DELINEASI; if (!D) return; $('boxDelin').style.display = 'block';
+  $('delTable').innerHTML = '<tr><th>Tahun</th><th class="n">Terbakar (ha)</th><th class="n">Kejadian</th><th class="n">% luas bertitik api</th><th class="n">% titik api di area terbakar</th></tr>' +
+    D.ringkasan.map(r => `<tr><td>${r.tahun}${r.tahun === 2026 ? '*' : ''}</td><td class="n">${fmt(r.luas_terbakar_ha)}</td><td class="n">${fmt(r.kejadian_min_10ha)}</td><td class="n">${r.persen_luas_terdeteksi != null ? fmt(r.persen_luas_terdeteksi, 1) : '–'}</td><td class="n">${r.persen_titik_terkait != null ? fmt(r.persen_titik_terkait, 1) : '–'}</td></tr>`).join('');
+  const lag = D.ringkasan.map(r => r.median_selisih_titik_pertama_hari).filter(v => v != null);
+  $('delNote').innerHTML = `Kejadian ≥ ${D.parameter.min_ha} ha. *2026: area terbakar s.d. September. Tahun tanpa area terbakar MODIS (2021–2022) berarti api kecil tidak terpetakan pada resolusi 500 m. Titik api VIIRS S-NPP dipakai karena independen dari MCD64A1 (yang dibantu titik api MODIS). Titik api pertama umumnya muncul ${lag.length ? 'pada hari yang sama dengan tanggal bakar awal (median selisih ' + fmt(lag.sort((a, b) => a - b)[Math.floor((lag.length - 1) / 2)]) + ' hari)' : '–'}.`;
+  const KH = ['APL', 'Hutan Lindung', 'KSA/KPA', 'Suaka Margasatwa', 'Taman Nasional', 'Hutan Produksi Terbatas', 'Hutan Produksi Tetap', 'Hutan Produksi Konversi'];
+  const prot = [1, 2, 3, 4]; let protTot = 0, protLuar = 0;
+  const rows = D.asal_kawasan.filter(r => KH.includes(r.asal_api_kawasan)).map((r, a) => {
+    const v = KH.map(k => r[k + '_ha'] || 0), tot = v.reduce((s, x) => s + x, 0);
+    prot.forEach(b => { protTot += v[b]; if (!prot.includes(a)) protLuar += v[b]; });
+    return { asal: r.asal_api_kawasan, tot, sama: v[a], lain: tot - v[a] };
+  }).filter(r => r.tot > 0).sort((p, q) => q.tot - p.tot);
+  $('asalTable').innerHTML = '<tr><th>Asal api di</th><th class="n">Terbakar (ha)</th><th class="n">% tetap di kawasan asal</th><th class="n">Meluas ke kawasan lain (ha)</th></tr>' +
+    rows.map(r => `<tr><td>${r.asal}</td><td class="n">${fmt(r.tot)}</td><td class="n">${fmt(100 * r.sama / r.tot, 1)}</td><td class="n">${fmt(r.lain)}</td></tr>`).join('');
+  $('asalNote').innerHTML = `Kejadian yang terkait titik api, 2015–2026. Kawasan lindung dan konservasi (Hutan Lindung, KSA/KPA, Suaka Margasatwa, Taman Nasional): ${fmt(protTot)} ha terbakar, ${fmt(protLuar)} ha (${fmt(protTot ? 100 * protLuar / protTot : 0, 1)}%) apinya berasal dari luar kawasan tersebut. Median jarak ke jalan: asal api ${fmt(D.jarak_asal.asal_api_median_jarak_jalan_m / 1000, 1)} km, seluruh area terbakar ${fmt(D.jarak_asal.area_terbakar_median_jarak_jalan_m / 1000, 1)} km, seluruh provinsi ${fmt(D.jarak_asal.provinsi_median_jarak_jalan_m / 1000, 1)} km; ke permukiman: ${fmt(D.jarak_asal.asal_api_median_jarak_permukiman_m / 1000, 1)} / ${fmt(D.jarak_asal.area_terbakar_median_jarak_permukiman_m / 1000, 1)} / ${fmt(D.jarak_asal.provinsi_median_jarak_permukiman_m / 1000, 1)} km. Asal api adalah indikasi lokasi penyulutan dari satelit, bukan bukti pelaku.`;
 }
 // analisis lanjutan (skrip 13): emisi, tutupan lahan terbakar, kinerja per wilayah, kesepakatan model
 function drawAnalisis() {

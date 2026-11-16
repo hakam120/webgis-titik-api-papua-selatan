@@ -1,0 +1,1 @@
+window.KEJADIAN = window.KEJADIAN || {}; window.KEJADIAN[2022] = {"poligon":{"type":"FeatureCollection","features":[]},"asal":{"type":"FeatureCollection","features":[]}};
