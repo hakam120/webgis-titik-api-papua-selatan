@@ -607,6 +607,7 @@ document.querySelectorAll('nav button').forEach(b => b.addEventListener('click',
   if (b.dataset.t === 'statistik' && !statsDone) { statsDone = true; drawStats(); }
   if (b.dataset.t === 'model' && !modelReady) { modelReady = true; loadGrid().then(initModel); }
   if (b.dataset.t === 'prakiraan' && !praReady) { praReady = true; initPrakiraan().catch(e => { $('praInfo').textContent = 'Prakiraan gagal dimuat: ' + e.message; }); }
+  try { history.replaceState(null, '', '#tab=' + b.dataset.t); } catch (e) {}
 }));
 
 // ---------- prakiraan: peringatan dini harian, musiman (model dinamis), prospek ENSO ----------
@@ -709,11 +710,11 @@ async function initPrakiraan() {
   const M = PRA.musiman, A = PRA.amatan_bulanan;
   if (!M) { $('musNote').textContent = 'Prakiraan musiman belum tersedia.'; return; }
   $('musNote').textContent = 'Menghitung model dinamis untuk tiap bulan…';
-  const tunggu = () => new Promise(r => setTimeout(r, 0)), baris = [];
+  const tunggu = () => new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); }), baris = [];   // jeda tanpa timer: tidak diperlambat saat tab di latar belakang
   const riwayat = b => R.uji.bulanan.filter(r => r[1] === b).map(r => r[2]);
   for (let j = 0; j < A.bulan.length; j++) { if (M.bulan.includes(A.bulan[j])) continue; await tunggu(); baris.push({ ym: A.bulan[j], amatan: true, tengah: dinRun(fiturDari(A, j)) }); }
   for (let j = 0; j < M.bulan.length; j++) { const o = { ym: M.bulan[j], j }; for (const s of ['kering', 'tengah', 'basah']) { await tunggu(); o[s] = dinRun(fiturDari(M.skenario[s], j)); } baris.push(o); }
-  for (const b of baris) { await tunggu(); const bi = +b.ym.slice(5) - 1; b.normal = dinRun({ hujan: R.normal.hujan[bi], hujan3: R.normal.hujan3[bi], fwi: R.normal.fwi[bi], dc: R.normal.dc[bi] }).sel; b.rw = riwayat(bi + 1); musHasil[b.ym] = b; }
+  for (const b of baris) { if (!R.normal_sel) await tunggu(); const bi = +b.ym.slice(5) - 1; b.normal = R.normal_sel ? R.normal_sel[bi] : dinRun({ hujan: R.normal.hujan[bi], hujan3: R.normal.hujan3[bi], fwi: R.normal.fwi[bi], dc: R.normal.dc[bi] }).sel; b.rw = riwayat(bi + 1); musHasil[b.ym] = b; }
   new Chart($('chMusim'), { type: 'bar', data: { labels: baris.map(b => ymLab(b.ym)), datasets: [
     { label: 'Prakiraan sel api (skenario tengah)', data: baris.map(b => Math.round(b.tengah.sel)), backgroundColor: baris.map(b => b.amatan ? '#ADB5BD' : '#F76707') },
     { type: 'line', label: 'Skenario kering', data: baris.map(b => b.kering ? Math.round(b.kering.sel) : null), borderColor: '#C92A2A', borderDash: [4, 3], pointRadius: 2, borderWidth: 1.5 },
@@ -1006,6 +1007,8 @@ map.on('click', async e => {
     ${F.burn26 ? `<tr><td>Terbakar 2026 (MODIS)</td><td>${F.burn26[j]}% sel</td></tr>` : ''}<tr><td>Titik api 2023–2025</td><td>${F.uji[j]} deteksi</td></tr></table>
     <details><summary>Kelas ${PAR.length} parameter</summary><table>${rows}</table></details>`).openOn(map);
 });
+// tautan langsung ke tab, mis. .../#tab=prakiraan
+(() => { const h = (location.hash.match(/tab=(\w+)/) || [])[1], b = h && document.querySelector('nav button[data-t="' + h + '"]'); if (b && h !== 'terkini') b.click(); })();
 </script>
 </body>
 </html>
