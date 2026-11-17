@@ -607,7 +607,7 @@ document.querySelectorAll('nav button').forEach(b => b.addEventListener('click',
   if (b.dataset.t === 'statistik' && !statsDone) { statsDone = true; drawStats(); }
   if (b.dataset.t === 'model' && !modelReady) { modelReady = true; loadGrid().then(initModel); }
   if (b.dataset.t === 'prakiraan' && !praReady) { praReady = true; initPrakiraan().catch(e => { $('praInfo').textContent = 'Prakiraan gagal dimuat: ' + e.message; }); }
-  try { history.replaceState(null, '', '#tab=' + b.dataset.t); } catch (e) {}
+  try { if (!location.hash.includes('tab=' + b.dataset.t)) history.replaceState(null, '', '#tab=' + b.dataset.t); } catch (e) {}
 }));
 
 // ---------- prakiraan: peringatan dini harian, musiman (model dinamis), prospek ENSO ----------
@@ -683,7 +683,7 @@ async function initPrakiraan() {
     const on = $('praPeta').checked; $('legPra').style.display = on ? 'block' : 'none';
     if (on) { praLayer = paintCells(r.lev, WARN).addTo(map); $('legPra').innerHTML = `<div class="t">${$('praJenis').value === 'fwi' ? 'Kelas cuaca kebakaran (FWI)' : 'Tingkat peringatan'} · ${tgl(H.tanggal[t])}</div>` + WARNN.map((nm, i) => `<div class="i"><span class="sw" style="background:${WARN[i]}"></span>${nm}</div>`).join(''); }
   };
-  ['praHari', 'praPeta', 'praJenis'].forEach(id => $(id).addEventListener(id === 'praHari' ? 'input' : 'change', gambarHarian)); gambarHarian();
+  ['praHari', 'praPeta', 'praJenis'].forEach(id => $(id).addEventListener(id === 'praHari' ? 'input' : 'change', gambarHarian)); if (/peta=harian/.test(location.hash)) $('praPeta').checked = true; gambarHarian();
   // ---- 3. ENSO ----
   const E = PRA.enso, EM = E && E.model, P = E && E.prospek;
   if (EM && P) {
@@ -732,7 +732,7 @@ async function initPrakiraan() {
     musLayer = paintCells(cls, HAZ, true).addTo(map);
     $('legMus').innerHTML = `<div class="t">Peluang relatif titik api · ${ymLab(b.ym)} · skenario ${$('musSken').value}</div>` + ['< 0,1', '0,1–0,3', '0,3–0,5', '0,5–0,7', '≥ 0,7'].map((nm, i) => `<div class="i"><span class="sw" style="background:${HAZ[i]}"></span>${nm}</div>`).join('') + `<div class="i" style="color:#6B6762">Prakiraan ${fmt(r.sel)} sel api; ${[1, 2, 3, 4].map(k => KAB[k] + ' ' + fmt(100 * r.kab[k] / r.S) + '%').join(', ')}</div>`;
   };
-  ['musBulan', 'musSken', 'musPeta'].forEach(id => $(id).addEventListener('change', gambarMus));
+  ['musBulan', 'musSken', 'musPeta'].forEach(id => $(id).addEventListener('change', gambarMus)); if (/peta=musiman/.test(location.hash)) { $('musPeta').checked = true; gambarMus(); }
 }
 // ringkasan harian provinsi (FWI rata-rata dan % luas tingkat >= 4) tanpa menggambar peta
 function praHarianRingkas(t) { const s = $('praJenis').value; $('praJenis').value = 'tingkat'; const r = praHarian(t); $('praJenis').value = s; return { fwi: r.st[0].f / r.st[0].a, hi: 100 * r.st[0].hi / r.st[0].a }; }
