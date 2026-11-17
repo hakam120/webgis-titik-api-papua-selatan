@@ -1,4 +1,4 @@
-name: Perbarui titik api & terbitkan WebGIS
+name: Perbarui titik api, prakiraan & terbitkan WebGIS
 
 on:
   push:
@@ -29,14 +29,19 @@ jobs:
         if: github.event_name != 'push'
         run: python3 scripts/perbarui_titik_api.py
 
+      - name: Perbarui prakiraan (cuaca 16 hari, musiman, ENSO)
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: python3 scripts/perbarui_prakiraan.py
+
       - name: Simpan data terbaru ke repositori
         if: github.event_name != 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/titik_api_7hari.js data/arsip_harian.js
+          git add data/titik_api_7hari.js data/arsip_harian.js data/prakiraan.js data/prakiraan
           if ! git diff --cached --quiet; then
-            git commit -m "Perbarui titik api 7 hari (NASA FIRMS NRT)"
+            git commit -m "Perbarui titik api 7 hari dan prakiraan"
             git push
           fi
 
