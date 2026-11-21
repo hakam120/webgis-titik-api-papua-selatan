@@ -247,6 +247,14 @@
       <h2>Kinerja model (AUC)</h2>
       <table id="aucTable"></table>
       <p class="note">KLHK = Peta Rawan Karhutla KLHK. ★ = model utama; tebal = terbaik per baris. AUC 0,5 = acak, 1 = sempurna. Uji temporal: model dilatih dengan titik api 2015–2022 lalu diuji pada kejadian yang tidak dipakai melatih (2023–2025, 2026) dan pada area terbakar MODIS (sumber independen).</p>
+      <div id="boxSig" style="display:none">
+        <h2>Apakah selisih AUC bermakna?</h2>
+        <table id="sigTable"></table>
+        <p class="note" id="sigNote"></p>
+        <h2>Tangkapan pada luas yang sama</h2>
+        <table id="capTable"></table>
+        <p class="note" id="capNote"></p>
+      </div>
       <h2>Kurva tingkat keberhasilan (uji 2023–2025)</h2>
       <div class="chart" style="height:220px"><canvas id="chKurva"></canvas></div>
       <h2>Kepentingan parameter (Random Forest)</h2>
@@ -265,6 +273,11 @@
         <h2>Asal api vs kawasan yang terbakar</h2>
         <table id="asalTable"></table>
         <p class="note" id="asalNote"></p>
+        <div id="boxSens" style="display:none">
+          <h2>Uji sensitivitas ambang delineasi</h2>
+          <table id="sensTable"></table>
+          <p class="note" id="sensNote"></p>
+        </div>
       </div>
       <div id="boxAnalisis" style="display:none">
         <h2>Perkiraan emisi kebakaran 2026</h2>
@@ -287,7 +300,7 @@
       <h2>Tentang WebGIS ini</h2>
       <p>WebGIS untuk PjBL GD4103 Sistem Informasi Geografis 2026 (Teknik Geodesi dan Geomatika ITB), tema karhutla, fokus <b>titik api</b> di Provinsi Papua Selatan (Merauke, Mappi, Boven Digoel, Asmat).</p>
       <p><b>Data terkini.</b> Titik api 7 hari terakhir dari NASA FIRMS NRT (VIIRS S-NPP, NOAA-20, NOAA-21, MODIS Terra/Aqua) diunduh ulang otomatis setiap 6 jam oleh GitHub Actions, diberi atribut kecamatan, kelas bahaya, gambut, fungsi kawasan, dan perizinan.</p>
-      <p><b>Model.</b> 15 parameter: tutupan lahan, curah hujan Agu–Nov, suhu udara, kelembapan relatif, Fire Weather Index, fraksi gambut, frekuensi genangan, jarak ke permukiman, jalan, sungai, kehilangan hutan 2013–2022, fungsi kawasan hutan, perizinan, elevasi dan kemiringan (DEMNAS). Tiga model: Rasio Frekuensi, AHP, Random Forest. Latih 2015–2022, uji 2023–2025 dan 2026.</p>
+      <p><b>Model.</b> 15 parameter: tutupan lahan, curah hujan Agu–Nov, suhu udara, kelembapan relatif, Fire Weather Index, fraksi gambut, frekuensi genangan, jarak ke permukiman, jalan, sungai, kehilangan hutan 2013–2022, fungsi kawasan hutan, perizinan, elevasi dan kemiringan (DEMNAS). Tiga model: Rasio Frekuensi, AHP, Random Forest. Latih 2015–2022, uji 2023–2025 dan 2026. Selisih AUC antarmodel diuji dengan bootstrap blok spasial 25 km (DeLong dkk. 1988 sebagai pembanding), dilengkapi tangkapan pada luas yang sama, PR-AUC, dan AUC per tahun serta per kecamatan; ambang delineasi kejadian kebakaran diuji sensitivitasnya (tab Statistik).</p>
       <p><b>Prakiraan.</b> Tab Prakiraan diperbarui otomatis oleh GitHub Actions tanpa kunci akun: (1) peringatan dini 16 hari dari prakiraan cuaca Open-Meteo (ECMWF IFS) yang diubah menjadi Fire Weather Index Kanada dan digabung dengan kelas bahaya RF; (2) prakiraan musiman ±6 bulan dari ensemble 51 anggota, menjadi masukan <i>model dinamis</i> (Random Forest bulanan yang dilatih pada titik api VIIRS April 2015–Desember 2025 dan diuji dengan menyisihkan satu tahun bergantian); (3) prospek musim kebakaran berikutnya dari indeks ENSO (ONI NOAA) dan tahun-tahun analog. Prakiraan adalah alat bantu, bukan peringatan resmi BMKG/KLHK.</p>
       <p><b>Nilai tambah.</b> (1) Pemodelan on-the-fly di peramban: Random Forest, AHP dengan bobot yang dapat diubah, atau Rasio Frekuensi dengan pilihan parameter; skenario iklim (normal, kemarau 2026 dengan anomali hujan, suhu, kelembapan, dan FWI terukur per sel, atau perubahan seragam yang diatur sendiri); ambang kelas (batas nilai kondisi normal sehingga luas zona bahaya mengikuti skenario, proporsi model, kuantil, interval sama, manual); validasi terhadap data kejadian dan rentang tanggal pilihan; dampak per kabupaten langsung. (2) Animasi waktu titik api 2026. (3) Info lokasi: tombol ⓘ lalu klik peta. (4) Unduh hasil: GeoTIFF, PNG, CSV, JSON, dan titik api terpilih.</p>
       <p><b>Sumber data.</b> NASA FIRMS; MODIS MCD64A1 (Microsoft Planetary Computer); BIG Satu Peta (gambut FEG, KHG, rawan karhutla KLHK, kawasan hutan, PBPH, izin sawit, PIPPIB, mangrove, sawah, kecamatan); ESA WorldCover 2021; Esri/IO LULC; Hansen GFC v1.13; JRC Global Surface Water; CHIRPS v3; Copernicus ERA5-Land dan CEMS Fire Weather Index; DEMNAS (BIG, Ina-Geoportal; celah pesisir diisi Copernicus DEM); Peat-ML; GHSL 2025; Meta HRSL 2020 + Sensus Penduduk 2020 (BPS); Google Open Buildings v3; OpenStreetMap; geoBoundaries.</p>
@@ -306,6 +319,8 @@
 <script src="data/kecamatan.js"></script>
 <script src="data/analisis_v2.js"></script>
 <script src="data/delineasi.js"></script>
+<script src="data/signifikansi_auc.js"></script>
+<script src="data/sensitivitas_delineasi.js"></script>
 <script src="data/titik_api_7hari.js"></script>
 <script src="data/arsip_harian.js"></script>
 <script src="data/fasilitas.js"></script>
@@ -759,6 +774,39 @@ function drawStats() {
   $('kecImpact').querySelectorAll('tr.click').forEach(tr => tr.addEventListener('click', () => zoomKec(+tr.dataset.id)));
   drawAnalisis();
   drawDelineasi();
+  drawSig();
+  drawSens();
+}
+// uji signifikansi AUC (skrip 21): selisih AUC berpasangan dengan selang kepercayaan bootstrap blok spasial
+const sgnf = (v, d) => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + fmt(Math.abs(v), d);
+function drawSig() {
+  const S = window.SIGAUC; if (!S) return; $('boxSig').style.display = 'block';
+  const U = [...new Set(S.signifikansi.map(r => r.data_uji))], PS = [...new Set(S.signifikansi.map(r => r.model_a + '|' + r.model_b))];
+  const pendek = u => u.replace('Titik api', 'Api').replace('Area terbakar', 'Bakar').replace(' (Jan–Sep)', '').replace('2023–2025', '23–25').replace('2026', '26'), sm = v => (v < 0 ? '−' : '') + fmt(Math.abs(v), 3);
+  $('sigTable').style.fontSize = '12px'; $('sigTable').innerHTML = '<tr><th>Pasangan</th>' + U.map(u => `<th class="n">${pendek(u)}</th>`).join('') + '</tr>' +
+    PS.map(pq => { const [a, b] = pq.split('|'); return `<tr><td style="white-space:nowrap">${a}−${b}</td>` + U.map(u => { const r = S.signifikansi.find(x => x.data_uji === u && x.model_a === a && x.model_b === b); if (!r) return '<td></td>';
+      const ok = !/setara/.test(r.kesimpulan); return `<td class="n"${ok ? '' : ' style="color:#868E96"'}>${ok ? '<b>' : ''}${sgnf(r.selisih, 3)}${ok ? '</b>' : ' ≈'}<br><span style="font-size:10px;color:#6B6762;white-space:nowrap">${sm(r.SK95_bawah_blok_25km)}…${sm(r.SK95_atas_blok_25km)}</span></td>`; }).join('') + '</tr>'; }).join('');
+  const th = S.per_tahun || [], rfTop = th.filter(r => r.tertinggi === 'RF').length, zMin = Math.min(...S.signifikansi.filter(r => r.model_a === 'RF').map(r => r.delong_z || 0));
+  const kc = S.kecamatan || {}, k26 = kc['Titik api 2026'];
+  $('sigNote').innerHTML = `Selisih AUC (model pertama − kedua) dan selang kepercayaan 95% (bawah…atas). Api = titik api, bakar = area terbakar. Tebal = selisih bermakna; abu-abu ≈ = setara. Selang dari ${fmt(S.ulangan_bootstrap)} ulangan bootstrap blok 25 km (blok wilayah diambil ulang, semua model memakai blok yang sama) sehingga ketergantungan antarsel bertetangga diperhitungkan; selisih bermakna bila selangnya tidak memuat 0. Uji DeLong yang menganggap tiap sel 100 m saling bebas memberi z ≥ ${fmt(zMin, 0)} untuk semua pasangan RF, tetapi galat bakunya terlalu kecil karena satu kebakaran mengisi ratusan sel. Konsistensi: RF tertinggi pada ${rfTop} dari ${th.length} data uji tahunan 2023–2026 (titik api dan area terbakar per tahun).` +
+    (k26 ? ` Di dalam ${k26.kecamatan} kecamatan dengan ≥ 50 sel api 2026, AUC tertinggi diraih RF ${k26.tertinggi.RF}, FR ${k26.tertinggi.FR}, AHP ${k26.tertinggi.AHP}, KLHK ${k26.tertinggi.KLHK} kali.` : '');
+  const MS = ['RF', 'FR', 'AHP', 'KLHK'], cap = S.tangkapan_luas_tetap || [], uji = [...new Set(cap.map(r => r.data_uji))];
+  $('capTable').innerHTML = '<tr><th>Data uji</th>' + MS.map(m => `<th class="n">${m}</th>`).join('') + '</tr>' +
+    uji.map(u => { const v = MS.map(m => (cap.find(r => r.data_uji === u && r.model === m) || {}).tangkapan_24persen_luas), b = Math.max(...v.map(x => x || 0));
+      return `<tr><td>${u}</td>` + v.map(x => `<td class="n"${x === b ? ' style="font-weight:700;color:#D9480F"' : ''}>${fmt(x, 1)}%</td>`).join('') + '</tr>'; }).join('');
+  const pr = u => MS.map(m => `${m} ${fmt((cap.find(r => r.data_uji === u && r.model === m) || {}).PR_AUC_kali_prevalensi, 1)}×`).join(', ');
+  $('capNote').innerHTML = `% kejadian uji yang jatuh di 24% luas provinsi berindeks tertinggi (sama dengan luas zona tinggi RF), sehingga model dibandingkan pada luas yang sama. PR-AUC (presisi-recall) sebagai kelipatan prevalensi, titik api 2023–2025: ${pr('Titik api 2023–2025')}; area terbakar 2026: ${pr('Area terbakar 2026 (Jan–Sep)')}.`;
+}
+// uji sensitivitas ambang delineasi (skrip 20)
+function drawSens() {
+  const S = window.SENSDEL; if (!S) return; $('boxSens').style.display = 'block';
+  const R = S.skenario.filter(r => r.kelompok !== 'rinci'), b = R.find(r => r.kelompok === 'baseline');
+  const lab = r => (r.kelompok === 'baseline' || r.kelompok === 'gabungan') ? `<b>${r.skenario}</b><br><span style="font-size:10px;color:#6B6762;white-space:nowrap">${r.hari_gabung_sel} hari · ${fmt(r.buffer_m)} m · ${r.luas_min_ha} ha</span>` : r.skenario;
+  $('sensTable').style.fontSize = '12px'; $('sensTable').innerHTML = '<tr><th>Skenario</th><th class="n">Kejadian</th><th class="n">% luas bertitik api</th><th class="n">% titik api terkait</th><th class="n">% asal di zona tinggi</th><th class="n">% kaw. lindung dari luar</th></tr>' +
+    R.map(r => `<tr${r.kelompok === 'baseline' ? ' style="background:#FFF4E6"' : ''}><td>${lab(r)}</td><td class="n">${fmt(r.kejadian)}</td><td class="n">${fmt(r.persen_luas_terdeteksi, 1)}</td><td class="n">${fmt(r.persen_titik_terkait, 1)}</td><td class="n">${fmt(r.persen_asal_zona_tinggi, 1)}</td><td class="n">${fmt(r.persen_kawasan_lindung_dari_luar, 1)}</td></tr>`).join('');
+  const rng = k => { const v = R.map(r => r[k]).filter(x => x != null); return `${fmt(Math.min(...v), 1)}–${fmt(Math.max(...v), 1)}`; };
+  const ev = R.map(r => r.kejadian), gs = Math.max(...S.skenario.map(r => r.pergeseran_maks_porsi_asal_kawasan_pp));
+  $('sensNote').innerHTML = `Ambang diubah satu per satu (rentang waktu 4/12 hari untuk menggabungkan sel dan mengaitkan titik api; buffer 0/300/1.000 m; luas minimum 0/21 ha = 1 piksel MCD64A1) dan sekaligus (ketat, longgar). Yang peka: jumlah kejadian (${fmt(Math.min(...ev))}–${fmt(Math.max(...ev))}, terutama oleh rentang waktu) dan % titik api yang terkait (${rng('persen_titik_terkait')}%, terutama oleh buffer). Yang stabil: asal api di zona tinggi RF ${rng('persen_asal_zona_tinggi')}%, api di kawasan lindung yang berasal dari luar ${rng('persen_kawasan_lindung_dari_luar')}%, dan porsi asal api per fungsi kawasan bergeser paling banyak ${fmt(gs, 1)} poin persen dari baseline.`;
 }
 // delineasi kejadian kebakaran (skrip 16): ringkasan per tahun dan asal api vs kawasan yang terbakar
 function drawDelineasi() {
