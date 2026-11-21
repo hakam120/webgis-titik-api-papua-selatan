@@ -254,6 +254,16 @@
         <h2>Tangkapan pada luas yang sama</h2>
         <table id="capTable"></table>
         <p class="note" id="capNote"></p>
+        <div id="boxSs" style="display:none">
+          <h2>Sensitivitas dan spesifisitas zona tinggi</h2>
+          <table id="ssTable"></table>
+          <p class="note" id="ssNote"></p>
+        </div>
+        <div id="boxKet" style="display:none">
+          <h2>Ketahanan peringkat model</h2>
+          <table id="ketTable"></table>
+          <p class="note" id="ketNote"></p>
+        </div>
       </div>
       <h2>Kurva tingkat keberhasilan (uji 2023–2025)</h2>
       <div class="chart" style="height:220px"><canvas id="chKurva"></canvas></div>
@@ -321,6 +331,8 @@
 <script src="data/delineasi.js"></script>
 <script src="data/signifikansi_auc.js"></script>
 <script src="data/sensitivitas_delineasi.js"></script>
+<script src="data/sensitivitas_model.js"></script>
+<script src="data/ketahanan_model.js"></script>
 <script src="data/titik_api_7hari.js"></script>
 <script src="data/arsip_harian.js"></script>
 <script src="data/fasilitas.js"></script>
@@ -775,6 +787,8 @@ function drawStats() {
   drawAnalisis();
   drawDelineasi();
   drawSig();
+  drawSs();
+  drawKet();
   drawSens();
 }
 // uji signifikansi AUC (skrip 21): selisih AUC berpasangan dengan selang kepercayaan bootstrap blok spasial
@@ -796,6 +810,32 @@ function drawSig() {
       return `<tr><td>${u}</td>` + v.map(x => `<td class="n"${x === b ? ' style="font-weight:700;color:#D9480F"' : ''}>${fmt(x, 1)}%</td>`).join('') + '</tr>'; }).join('');
   const pr = u => MS.map(m => `${m} ${fmt((cap.find(r => r.data_uji === u && r.model === m) || {}).PR_AUC_kali_prevalensi, 1)}×`).join(', ');
   $('capNote').innerHTML = `% kejadian uji yang jatuh di 24% luas provinsi berindeks tertinggi (sama dengan luas zona tinggi RF), sehingga model dibandingkan pada luas yang sama. PR-AUC (presisi-recall) sebagai kelipatan prevalensi, titik api 2023–2025: ${pr('Titik api 2023–2025')}; area terbakar 2026: ${pr('Area terbakar 2026 (Jan–Sep)')}.`;
+}
+// sensitivitas-spesifisitas zona tinggi (skrip 23) dan ketahanan peringkat model (skrip 22)
+const pendekU = u => u.replace('Titik api', 'Api').replace('Area terbakar', 'Bakar').replace(' (Jan–Sep)', '').replace('2023–2025', '23–25').replace('2026', '26');
+function drawSs() {
+  const S = window.SENSMODEL; if (!S) return; $('boxSs').style.display = 'block';
+  const MS = ['RF', 'FR', 'AHP', 'KLHK'], U = [...new Set(S.model.map(r => r.data_uji))];
+  $('ssTable').style.fontSize = '12px';
+  $('ssTable').innerHTML = '<tr><th>Model</th>' + U.map(u => `<th class="n">${pendekU(u)}</th>`).join('') + '</tr>' +
+    MS.map(m => `<tr><td>${m}<br><span style="font-size:10px;color:#6B6762">zona ${fmt((S.model.find(r => r.model === m) || {}).luas_zona_persen, 0)}%</span></td>` + U.map(u => {
+      const r = S.model.find(x => x.data_uji === u && x.model === m), best = Math.max(...S.model.filter(x => x.data_uji === u).map(x => x.youden_J));
+      return `<td class="n"${r.youden_J === best ? ' style="font-weight:700;color:#D9480F"' : ''}>${fmt(r.youden_J, 3)}<br><span style="font-size:10px;color:#6B6762;white-space:nowrap">${fmt(r.sensitivitas, 0)} · ${fmt(r.spesifisitas, 0)}</span></td>`; }).join('') + '</tr>').join('');
+  const se = S.selisih.filter(r => r.model_a === 'RF'), setara = se.filter(r => r.kesimpulan_J === 'setara').map(r => `RF–${r.model_b} (${pendekU(r.data_uji)})`), kalah = se.filter(r => /lebih baik/.test(r.kesimpulan_J) && !r.kesimpulan_J.startsWith('RF')).map(r => `${r.model_b} (${pendekU(r.data_uji)})`);
+  const ah = S.model.filter(r => r.model === 'AHP'), rf = S.model.filter(r => r.model === 'RF');
+  $('ssNote').innerHTML = `Angka besar = Youden J (sensitivitas + spesifisitas − 1); di bawahnya sensitivitas · spesifisitas (%). Tebal = J tertinggi. Sensitivitas saja menyesatkan: zona tinggi AHP mencakup ${fmt(ah[0].luas_zona_persen, 0)}% wilayah sehingga sensitivitasnya ${fmt(Math.min(...ah.map(r => r.sensitivitas)), 0)}–${fmt(Math.max(...ah.map(r => r.sensitivitas)), 0)}%, lebih tinggi dari RF (${fmt(Math.min(...rf.map(r => r.sensitivitas)), 0)}–${fmt(Math.max(...rf.map(r => r.sensitivitas)), 0)}%), tetapi spesifisitasnya lebih rendah. Selang kepercayaan 95% bootstrap blok 25 km: selisih J setara untuk ${setara.length ? setara.join(', ') : 'tidak ada pasangan'}${kalah.length ? '; RF kalah dari ' + kalah.join(', ') : ''}; pasangan RF lainnya RF lebih baik. Pada luas yang sama (24%), lihat tabel tangkapan di atas.`;
+}
+function drawKet() {
+  const K = window.KETAHANAN; if (!K) return; $('boxKet').style.display = 'block';
+  const R = K.ringkas, U = [...new Set(R.map(r => r.data_uji))];
+  const baris = [['acak RF', 'RF', `Acak RF (${K.ulangan.acak_RF}×)`], ['bootstrap tahun', 'RF', `Data latih: RF (${K.ulangan.bootstrap_tahun}×)`], ['bootstrap tahun', 'FR', `Data latih: FR (${K.ulangan.bootstrap_tahun}×)`], ['bobot AHP', 'AHP', `Bobot AHP ±20% (${K.ulangan.bobot_AHP}×)`]];
+  $('ketTable').style.fontSize = '12px';
+  $('ketTable').innerHTML = '<tr><th>Usikan</th>' + U.map(u => `<th class="n">${pendekU(u)}</th>`).join('') + '</tr>' +
+    baris.map(b => `<tr><td>${b[2]}</td>` + U.map(u => { const r = R.find(x => x.uji_ketahanan === b[0] && x.model === b[1] && x.data_uji === u); if (!r) return '<td></td>';
+      return `<td class="n" style="white-space:nowrap">${fmt(r.AUC_P2_5, 3)}–${fmt(r.AUC_P97_5, 3)}<br><span style="font-size:10px;color:#6B6762">teratas ${fmt(r.persen_teratas_AUC, 0)}%</span></td>`; }).join('') + '</tr>').join('');
+  const rfB = R.filter(r => r.model === 'RF'), top = Math.min(...rfB.map(r => r.persen_teratas_AUC)), topS = Math.min(...rfB.map(r => r.persen_teratas_sens24));
+  const ahp = R.filter(r => r.model === 'AHP'), ahpTop = Math.max(...ahp.map(r => r.persen_teratas_AUC));
+  $('ketNote').innerHTML = `Rentang AUC 95% ulangan dan berapa persen ulangan model itu menjadi teratas (dibanding model lain versi asli, atau pasangan ulangan yang sama pada usikan data latih). Usikan: RF dilatih ulang dengan seed dan sampel berbeda; tahun latih 2015–2022 diambil ulang dengan pengembalian (RF dan FR dilatih ulang); bobot 15 parameter AHP dikali faktor acak 0,8–1,2. RF teratas menurut AUC pada ${fmt(top, 0)}–100% ulangan di semua data uji, dan menurut sensitivitas pada 24% luas pada 100% ulangan${rfB.some(r => r.persen_teratas_sens24 < 100) ? ' kecuali ' + [...new Set(rfB.filter(r => r.persen_teratas_sens24 < 100).map(r => pendekU(r.data_uji)))].map(u => u + ' (' + fmt(Math.min(...rfB.filter(r => pendekU(r.data_uji) === u).map(r => r.persen_teratas_sens24)), 0) + '%, setara FR)').join(', ') : ''}; AHP dengan bobot apa pun dalam rentang itu ${ahpTop > 0 ? 'teratas pada paling banyak ' + fmt(ahpTop, 0) + '% ulangan' : 'tidak pernah teratas'}.`;
 }
 // uji sensitivitas ambang delineasi (skrip 20)
 function drawSens() {
