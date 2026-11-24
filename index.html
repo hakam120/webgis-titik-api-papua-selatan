@@ -388,6 +388,30 @@ function kecPopup(p) {
   <tr><td>Kinerja model 2026</td><td>${p.sel_api_2026_snpp >= 50 ? `<b>${fmt(p.tangkapan_2026_persen, 1)}%</b> titik api di zona tinggi (${p.kinerja_2026})` : `data sedikit (${fmt(p.sel_api_2026_snpp)} sel api)`}</td></tr>` : ''}</table>
   <span style="color:#6B6762;font-size:11px">*saat model dijalankan; lihat tab Terkini untuk data terbaru</span>`;
 }
+// pop-up kabupaten: dampak (ringkasan model, area terbakar terbaru), titik api 7 hari (data terkini), emisi dan kinerja (analisis lanjutan)
+function kabPopup(nama) {
+  const p = (R.dampak_kabupaten || []).find(d => d.kabupaten === nama) || (window.KABUPATEN.features.find(f => f.properties.kabupaten === nama) || {}).properties;
+  if (!p) return `<b>Kabupaten ${nama}</b>`;
+  const A = window.ANALISIS || {}, em = ((A.emisi || {}).per_kabupaten || []).find(d => d.kabupaten === nama), kin = (A.kinerja_kabupaten || []).find(d => d.kabupaten === nama);
+  const jt = v => v >= 1e6 ? fmt(v / 1e6, 1) + ' juta' : fmt(v), pr = (a, b) => b ? ` (${fmt(100 * a / b, 0)}%)` : '';
+  const rentang = (a, b) => b >= 1e6 ? `${fmt(a / 1e6, 1)}–${fmt(b / 1e6, 1)} juta` : `${fmt(a)}–${fmt(b)}`;
+  const kl = [1, 2, 3, 4, 5].map(k => p['kelas' + k + '_ha'] || 0), tot = kl.reduce((a, b) => a + b, 0) || 1;
+  const pita = `<div style="display:flex;height:9px;border-radius:2px;overflow:hidden;margin:3px 0 1px" title="Porsi luas kelas sangat rendah sampai sangat tinggi">${kl.map((v, i) => `<span style="width:${(100 * v / tot).toFixed(2)}%;background:${HAZ[i]}"></span>`).join('')}</div>`;
+  const t7 = (T.per_kabupaten || {})[nama] || 0;
+  return `<b>Kabupaten ${nama}</b><table>
+  <tr><td>Luas</td><td>${fmt(p.luas_ha / 100)} km²</td></tr>
+  <tr><td>Zona bahaya tinggi–sangat tinggi (${MAIN})</td><td><b>${fmt(p.persen_tinggi_sangat_tinggi, 1)}%</b>${pita}</td></tr>
+  <tr><td>Penduduk di zona tinggi</td><td>${fmt(p.penduduk_zona_tinggi)} dari ${fmt(p.penduduk)} jiwa${pr(p.penduduk_zona_tinggi, p.penduduk)}</td></tr>
+  <tr><td>Bangunan di zona tinggi</td><td>${fmt(p.bangunan_zona_tinggi)} dari ${fmt(p.bangunan)}${pr(p.bangunan_zona_tinggi, p.bangunan)}</td></tr>
+  <tr><td>Fasilitas publik (OSM) di zona tinggi</td><td>${fmt(p.fasilitas_osm_zona_tinggi)} dari ${fmt(p.fasilitas_osm)}</td></tr>
+  <tr><td>Gambut di zona tinggi</td><td>${fmt(p.gambut_zona_tinggi_ha)} dari ${fmt(p.gambut_ha)} ha</td></tr>
+  <tr><td>Konsesi · taman nasional di zona tinggi</td><td>${fmt(p.konsesi_zona_tinggi_ha)} · ${fmt(p.taman_nasional_zona_tinggi_ha)} ha</td></tr>
+  <tr><td>Titik api 7 hari terakhir (${T.awal && T.akhir && T.awal.slice(0, 7) === T.akhir.slice(0, 7) ? +T.awal.slice(8) : fmtTgl(T.awal).replace(/ \d{4}$/, '')}–${fmtTgl(T.akhir)})</td><td><b>${fmt(t7)}</b></td></tr>
+  <tr><td>Area terbakar 2026 (MODIS, Jan–Sep)</td><td>${fmt(p.terbakar_2026_ha)} ha${p.terbakar_2026_zona_tinggi_ha !== undefined ? `<br><span style="color:#6B6762">${fmt(100 * p.terbakar_2026_zona_tinggi_ha / (p.terbakar_2026_ha || 1), 0)}% di zona tinggi</span>` : ''}</td></tr>
+  ${em ? `<tr><td>Perkiraan emisi Jan–Sep 2026</td><td><b>${jt(em.emisi_CO2e_tengah_t)}</b> t CO2e<br><span style="color:#6B6762">rentang ${rentang(em.emisi_CO2e_rendah_t, em.emisi_CO2e_tinggi_t)}</span></td></tr>` : ''}
+  ${kin ? `<tr><td>Kinerja model RF</td><td>titik api 2026: <b>${fmt(kin.tangkapan_2026_persen, 1)}%</b> di zona tinggi<br><span style="color:#6B6762">uji 2023–2025: ${fmt(kin.tangkapan_uji_persen, 1)}%; AUC dalam kabupaten ${fmt(kin.AUC_RF_2026_snpp, 2)}</span></td></tr>` : ''}</table>
+  <span style="color:#6B6762;font-size:11px">Rincian per kecamatan: tab Lapisan → Dampak per kecamatan. Nilai di titik tertentu: tombol ⓘ.</span>`;
+}
 // lapisan dampak per kecamatan (koroplet) dengan kelas tetap
 const KECV = {
   persen_tinggi_sangat_tinggi: { br: [10, 25, 50, 75], lab: ['< 10%', '10–25%', '25–50%', '50–75%', '≥ 75%'], judul: '% luas zona tinggi–sangat tinggi' },
@@ -501,6 +525,10 @@ map.on('click', e => {
     let kena = null; g.eachLayer(l => { if (!kena && l._containsPoint && l._containsPoint(lp)) kena = l; });
     if (kena) { kena.openPopup(e.latlng); return; }
   }
+  // tidak mengenai kecamatan atau kejadian: tampilkan ringkasan kabupaten bila batas kabupaten tampil
+  if (!map.hasLayer(kabLayer)) return;
+  let kab = null; kabLayer.eachLayer(l => { if (!kab && l._containsPoint && l._containsPoint(lp)) kab = l.feature.properties.kabupaten; });
+  if (kab) L.popup({ maxWidth: 330 }).setLatLng(e.latlng).setContent(kabPopup(kab)).openOn(map);
 });
 function zoomKec(id) {
   kecLayer.addTo(map); $('showKec').checked = true; kecLegend();
