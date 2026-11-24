@@ -49,12 +49,16 @@ def main():
         return grid[o:o + nb]
 
     titik, seen = [], set()
+    mentah = {k: [0, ''] for k in NAMA_SENSOR}   # per sensor: jumlah deteksi di seluruh berkas Asia Tenggara, tanggal terakhir
     for path, _ in SUMBER:
         teks = unduh(path)
         if teks is None:
             print('sumber tidak tersedia, data lama dipertahankan:', path)
             return 0
         for r in csv.DictReader(io.StringIO(teks)):
+            m = mentah.setdefault(SAT.get(r['satellite'], r['satellite']), [0, ''])
+            m[0] += 1
+            m[1] = max(m[1], r['acq_date'])
             la, lo = float(r['latitude']), float(r['longitude'])
             if not (-9.4 <= la <= -4.0 and 137.1 <= lo <= 141.2):
                 continue
@@ -80,7 +84,10 @@ def main():
     d_akhir = datetime.date.fromisoformat(akhir['d'])
     d_awal = (d_akhir - datetime.timedelta(days=6)).isoformat()
     titik = [p for p in titik if p['d'] >= d_awal]
-    tulis(meta, titik, akhir, d_awal)
+    for k, (n, d) in sorted(mentah.items()):
+        if n == 0:
+            print('peringatan: berkas FIRMS tidak berisi deteksi', NAMA_SENSOR.get(k, k))
+    tulis(meta, titik, akhir, d_awal, mentah)
     return 0
 
 
@@ -94,7 +101,7 @@ def hitung(daftar, kunci, label=None):
     return dict(sorted(h.items(), key=lambda kv: -kv[1]))
 
 
-def tulis(meta, titik, akhir, d_awal):
+def tulis(meta, titik, akhir, d_awal, mentah=None):
     kab, kec = meta['kabupaten'], meta['kecamatan']
     t_utc = datetime.datetime.strptime(akhir['d'] + akhir['t'], '%Y-%m-%d%H%M')
     ring = {
@@ -104,6 +111,9 @@ def tulis(meta, titik, akhir, d_awal):
         'awal': d_awal, 'akhir': akhir['d'], 'jumlah': len(titik),
         'frp_total_MW': round(sum(p['f'] for p in titik)),
         'per_sensor': hitung(titik, lambda p: NAMA_SENSOR.get(p['s'], p['s'])),
+        # 0 deteksi di seluruh Asia Tenggara = sumber kosong (gangguan data), bukan tidak ada kebakaran
+        'status_sensor': {NAMA_SENSOR.get(k, k): {'deteksi_asia_tenggara': n, 'tanggal_terakhir': d or None}
+                          for k, (n, d) in sorted((mentah or {}).items())},
         'per_kabupaten': hitung(titik, lambda p: p['k'], kab),
         'kecamatan_teratas': [[kec[k] if k < len(kec) else '?', n] for k, n in list(hitung(titik, lambda p: p['kc']).items())[:10] if k],
         'per_kelas_bahaya': {str(z): sum(1 for p in titik if p['z'] == z) for z in range(0, 6)},

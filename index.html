@@ -582,13 +582,24 @@ $('kecTop').innerHTML = '<tr><th>Kecamatan</th><th class="n">Titik</th></tr>' + 
   const id = Object.keys(KEC).find(k => `${KEC[k].kecamatan} (${KEC[k].kabupaten})` === n);
   return `<tr class="click" data-id="${id || ''}"><td>${n}</td><td class="n">${fmt(v)}</td></tr>`; }).join('');
 $('kecTop').querySelectorAll('tr.click').forEach(tr => tr.addEventListener('click', () => tr.dataset.id && zoomKec(+tr.dataset.id)));
+// S-NPP kosong: berkas 7 hari FIRMS untuk S-NPP tidak berisi deteksi sama sekali (status dari skrip pembaru),
+// atau, untuk data lama tanpa status, S-NPP nol padahal VIIRS NOAA-20/21 mendeteksi banyak titik
+const NAMA_BLN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const ST_SNPP = (T.status_sensor || {}).VIIRS_SNPP;
+const SNPP_KOSONG = ST_SNPP ? ST_SNPP.deteksi_asia_tenggara === 0 : ((T.per_sensor.VIIRS_SNPP || 0) === 0 && (T.per_sensor.VIIRS_NOAA20 || 0) + (T.per_sensor.VIIRS_NOAA21 || 0) >= 100);
+// bulan terakhir yang berisi data pada deret bulanan S-NPP (arsip FIRMS); bulan sesudahnya belum dimuat
+const DERET_AKHIR = (window.DERET.bulanan.filter(r => +r.total > 0).pop() || {}).bulan || T.akhir.slice(0, 7);
+const nmBln = ym => NAMA_BLN[+ym.slice(5, 7) - 1] + ' ' + ym.slice(0, 4);
 (function konteks() {
-  const D = window.DERET, okt = D.klimatologi.find(c => c.bulan === 10), snpp = T.per_sensor.VIIRS_SNPP || 0;
-  const bulan = new Date(T.akhir + 'T00:00:00Z').getUTCMonth() + 1, cl = D.klimatologi.find(c => c.bulan === bulan);
-  const nm = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][bulan - 1];
-  $('konteks').innerHTML = `Dalam 7 hari terakhir VIIRS S-NPP saja mendeteksi <b>${fmt(snpp)}</b> titik api. Sebagai pembanding, rata-rata <b>sebulan penuh</b> ${nm} 2015–2025 adalah ${fmt(cl.rata2_2015_2025)} titik (2015: ${fmt(cl.th2015)}, 2019: ${fmt(cl.th2019)}, 2023: ${fmt(cl.th2023)}). ${D.ada_2026_penuh ? ` Sepanjang 2026 (s.d. ${tgl(T.akhir)}) S-NPP mencatat <b>${fmt(D.tahunan['2026'])}</b> titik api, melampaui setahun penuh 2015 (${fmt(D.tahunan['2015'])}): tahun dengan titik api terbanyak sejak 2015.` : ''} ${D.mcd64a1 ? `Area terbakar MODIS tersedia s.d. ${D.mcd64a1.akhir}.` : ''}`;
+  const D = window.DERET, snpp = T.per_sensor.VIIRS_SNPP || 0, n20 = T.per_sensor.VIIRS_NOAA20 || 0;
+  const bulan = new Date(T.akhir + 'T00:00:00Z').getUTCMonth() + 1, cl = D.klimatologi.find(c => c.bulan === bulan), nm = NAMA_BLN[bulan - 1];
+  const banding = `rata-rata S-NPP <b>sebulan penuh</b> ${nm} 2015–2025 adalah ${fmt(cl.rata2_2015_2025)} titik (2015: ${fmt(cl.th2015)}, 2019: ${fmt(cl.th2019)}, 2023: ${fmt(cl.th2023)})`;
+  const kalimat7 = SNPP_KOSONG
+    ? `<b>Data VIIRS S-NPP sedang tidak tersedia:</b> berkas 7 hari NASA FIRMS untuk S-NPP kosong${ST_SNPP ? ' (0 deteksi di seluruh Asia Tenggara)' : ''}, jadi angka nol S-NPP bukan berarti tidak ada kebakaran. Sebagai gambaran, sensor sejenis VIIRS NOAA-20 mendeteksi <b>${fmt(n20)}</b> titik api dalam 7 hari terakhir; ${banding}.`
+    : `Dalam 7 hari terakhir VIIRS S-NPP saja mendeteksi <b>${fmt(snpp)}</b> titik api. Sebagai pembanding, ${banding}.`;
+  $('konteks').innerHTML = `${kalimat7} ${D.ada_2026_penuh ? ` Sepanjang 2026 (arsip FIRMS s.d. ${nmBln(DERET_AKHIR)}) S-NPP mencatat <b>${fmt(D.tahunan['2026'])}</b> titik api, melampaui setahun penuh 2015 (${fmt(D.tahunan['2015'])}): tahun dengan titik api terbanyak sejak 2015.` : ''} ${D.mcd64a1 ? `Area terbakar MODIS tersedia s.d. ${D.mcd64a1.akhir}.` : ''}`;
 })();
-new Chart($('chHarian'), { type: 'bar', data: { labels: Object.keys(T.harian).map(tgl), datasets: Object.keys(SENSC).map(s => ({ label: s.replace('_', ' '), data: Object.values(T.harian).map(h => h[s] || 0), backgroundColor: SENSC[s] })) },
+new Chart($('chHarian'), { type: 'bar', data: { labels: Object.keys(T.harian).map(tgl), datasets: Object.keys(SENSC).map(s => ({ label: s.replace('_', ' ') + (s === 'VIIRS_SNPP' && SNPP_KOSONG ? ' (tidak ada data)' : ''), data: Object.values(T.harian).map(h => h[s] || 0), backgroundColor: SENSC[s] })) },
   options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => fmt(v) } } } } });
 (function arsip() {
   const A = window.ARSIP || {}, ks = Object.keys(A).sort();
@@ -817,10 +828,10 @@ function drawStats() {
   const imp = R.RF.kepentingan;
   new Chart($('chImp'), { type: 'bar', data: { labels: imp.map(x => x.Parameter.replace(/ \(.*\)/, '')), datasets: [{ label: 'Penurunan AUC bila diacak', data: imp.map(x => x.Permutasi_penurunan_AUC_uji), backgroundColor: '#D9480F' }, { label: 'Gini (ternormalisasi)', data: imp.map(x => x.Gini), backgroundColor: '#FFC078' }] },
     options: { indexAxis: 'y', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, scales: { y: { ticks: { font: { size: 10.5 } } } } } });
-  const D = window.DERET, rows = D.bulanan.filter(r => r.bulan <= T.akhir.slice(0, 7));
+  const D = window.DERET, rows = D.bulanan.filter(r => r.bulan <= (D.ada_2026_penuh ? DERET_AKHIR : T.akhir.slice(0, 7)));
   new Chart($('chSeri'), { type: 'bar', data: { labels: rows.map(r => r.bulan), datasets: [{ label: 'Titik api VIIRS S-NPP per bulan', data: rows.map(r => +r.total), backgroundColor: rows.map(r => r.bulan.startsWith('2026') ? '#D9480F' : '#ADB5BD') }] },
     options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { maxTicksLimit: 12 } }, y: { ticks: { callback: v => fmt(v) } } } } });
-  $('seriNote').textContent = D.ada_2026_penuh ? 'Merah: 2026 (arsip FIRMS + NRT).' : 'Merah: 2026; hanya 7 hari terakhir yang tersedia (data arsip FIRMS 2026 belum dimuat).';
+  $('seriNote').textContent = D.ada_2026_penuh ? `Merah: 2026 (arsip FIRMS + NRT, s.d. ${nmBln(DERET_AKHIR)}).` : 'Merah: 2026; hanya 7 hari terakhir yang tersedia (data arsip FIRMS 2026 belum dimuat).';
   $('impactTable').innerHTML = '<tr><th>Kabupaten</th><th class="n">% luas</th><th class="n">Penduduk</th><th class="n">Gambut (ha)</th><th class="n">Terbakar 2026 (ha)</th></tr>' +
     R.dampak_kabupaten.map(d => `<tr><td>${d.kabupaten}</td><td class="n">${fmt(d.persen_tinggi_sangat_tinggi, 1)}</td><td class="n">${fmt(d.penduduk_zona_tinggi)}</td><td class="n">${fmt(d.gambut_zona_tinggi_ha)}</td><td class="n">${fmt(d.terbakar_2026_ha)}</td></tr>`).join('');
   const kk = Object.values(KEC).sort((a, b) => b.penduduk_zona_tinggi - a.penduduk_zona_tinggi).slice(0, 10);
