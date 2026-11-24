@@ -591,15 +591,16 @@ const SNPP_KOSONG = ST_SNPP ? ST_SNPP.deteksi_asia_tenggara === 0 : ((T.per_sens
 const DERET_AKHIR = (window.DERET.bulanan.filter(r => +r.total > 0).pop() || {}).bulan || T.akhir.slice(0, 7);
 const nmBln = ym => NAMA_BLN[+ym.slice(5, 7) - 1] + ' ' + ym.slice(0, 4);
 (function konteks() {
-  const D = window.DERET, snpp = T.per_sensor.VIIRS_SNPP || 0, n20 = T.per_sensor.VIIRS_NOAA20 || 0;
+  const D = window.DERET, snpp = T.per_sensor.VIIRS_SNPP || 0, n20 = T.per_sensor.VIIRS_NOAA20 || 0, n21 = T.per_sensor.VIIRS_NOAA21 || 0;
   const bulan = new Date(T.akhir + 'T00:00:00Z').getUTCMonth() + 1, cl = D.klimatologi.find(c => c.bulan === bulan), nm = NAMA_BLN[bulan - 1];
-  const banding = `rata-rata S-NPP <b>sebulan penuh</b> ${nm} 2015–2025 adalah ${fmt(cl.rata2_2015_2025)} titik (2015: ${fmt(cl.th2015)}, 2019: ${fmt(cl.th2019)}, 2023: ${fmt(cl.th2023)})`;
+  const rata2 = `${fmt(cl.rata2_2015_2025)} titik (2015: ${fmt(cl.th2015)}, 2019: ${fmt(cl.th2019)}, 2023: ${fmt(cl.th2023)})`;
+  // bila S-NPP tidak ada datanya, pakai VIIRS NOAA-20 dan NOAA-21 (instrumen sama) sebagai pembanding
   const kalimat7 = SNPP_KOSONG
-    ? `<b>Data VIIRS S-NPP sedang tidak tersedia:</b> berkas 7 hari NASA FIRMS untuk S-NPP kosong${ST_SNPP ? ' (0 deteksi di seluruh Asia Tenggara)' : ''}, jadi angka nol S-NPP bukan berarti tidak ada kebakaran. Sebagai gambaran, sensor sejenis VIIRS NOAA-20 mendeteksi <b>${fmt(n20)}</b> titik api dalam 7 hari terakhir; ${banding}.`
-    : `Dalam 7 hari terakhir VIIRS S-NPP saja mendeteksi <b>${fmt(snpp)}</b> titik api. Sebagai pembanding, ${banding}.`;
+    ? `Dalam 7 hari terakhir VIIRS NOAA-20 mendeteksi <b>${fmt(n20)}</b> titik api dan VIIRS NOAA-21 <b>${fmt(n21)}</b> titik api. Sebagai pembanding, rata-rata <b>sebulan penuh</b> ${nm} 2015–2025 dari VIIRS S-NPP (instrumen yang sama) adalah ${rata2}.`
+    : `Dalam 7 hari terakhir VIIRS S-NPP saja mendeteksi <b>${fmt(snpp)}</b> titik api. Sebagai pembanding, rata-rata <b>sebulan penuh</b> ${nm} 2015–2025 adalah ${rata2}.`;
   $('konteks').innerHTML = `${kalimat7} ${D.ada_2026_penuh ? ` Sepanjang 2026 (arsip FIRMS s.d. ${nmBln(DERET_AKHIR)}) S-NPP mencatat <b>${fmt(D.tahunan['2026'])}</b> titik api, melampaui setahun penuh 2015 (${fmt(D.tahunan['2015'])}): tahun dengan titik api terbanyak sejak 2015.` : ''} ${D.mcd64a1 ? `Area terbakar MODIS tersedia s.d. ${D.mcd64a1.akhir}.` : ''}`;
 })();
-new Chart($('chHarian'), { type: 'bar', data: { labels: Object.keys(T.harian).map(tgl), datasets: Object.keys(SENSC).map(s => ({ label: s.replace('_', ' ') + (s === 'VIIRS_SNPP' && SNPP_KOSONG ? ' (tidak ada data)' : ''), data: Object.values(T.harian).map(h => h[s] || 0), backgroundColor: SENSC[s] })) },
+new Chart($('chHarian'), { type: 'bar', data: { labels: Object.keys(T.harian).map(tgl), datasets: Object.keys(SENSC).map(s => ({ label: s.replace('_', ' '), data: Object.values(T.harian).map(h => h[s] || 0), backgroundColor: SENSC[s] })) },
   options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } }, scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => fmt(v) } } } } });
 (function arsip() {
   const A = window.ARSIP || {}, ks = Object.keys(A).sort();
