@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy2.outputs.page_url || steps.deploy3.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,12 +42,32 @@ jobs:
           git add data/titik_api_7hari.js data/arsip_harian.js data/prakiraan.js data/prakiraan
           if ! git diff --cached --quiet; then
             git commit -m "Perbarui titik api 7 hari dan prakiraan"
-            git push
+            # main bisa bergeser bila ada push lain selama run; gabungkan dulu (data bot didahulukan), coba 3 kali
+            ok=0
+            for i in 1 2 3; do
+              if git pull --rebase -X theirs origin main && git push; then ok=1; break; fi
+              sleep 10
+            done
+            [ "$ok" = 1 ]
           fi
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
+      # deploy-pages kadang gagal membaca artefak yang baru diunggah ("No artifacts named github-pages");
+      # tunggu lalu coba lagi, paling banyak 3 kali
       - id: deploy
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.deploy.outcome == 'failure'
+        run: sleep 60
+      - id: deploy2
+        if: steps.deploy.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.deploy.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        run: sleep 120
+      - id: deploy3
+        if: steps.deploy.outcome == 'failure' && steps.deploy2.outcome == 'failure'
         uses: actions/deploy-pages@v4
