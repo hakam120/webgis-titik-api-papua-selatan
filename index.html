@@ -477,7 +477,7 @@ async function showKej() {
   const K = window.KEJADIAN[y];
   kejLayer = L.geoJSON(K.poligon, { pane: 'vec', style: f => f.properties.terdeteksi_titik_api ? { color: '#7F2704', weight: 0.8, fillColor: '#F76707', fillOpacity: 0.55 } : { color: '#495057', weight: 0.8, fillColor: '#ADB5BD', fillOpacity: 0.55 },
     onEachFeature: (f, l) => l.bindPopup(kejPopup(f.properties), { maxWidth: 340 }) }).addTo(map);
-  if ($('showAsal').checked) asalLayer = L.geoJSON(K.asal, { pane: 'pts', pointToLayer: (f, ll) => L.circleMarker(ll, { radius: 3.5, color: '#FFFFFF', weight: 1, fillColor: '#C92A2A', fillOpacity: 1 }),
+  if ($('showAsal').checked) asalLayer = L.geoJSON(K.asal, { pane: 'pts', pointToLayer: (f, ll) => L.circleMarker(ll, { renderer: ptsRenderer, radius: 3.5, color: '#FFFFFF', weight: 1, fillColor: '#C92A2A', fillOpacity: 1 }),
     onEachFeature: (f, l) => l.bindPopup(`<b>Asal api indikatif</b><br>${fmtTgl(f.properties.tanggal)} · ${f.properties.kawasan} · ${f.properties.konsesi}<br>Kejadian ${f.properties.id}: ${fmt(f.properties.luas_ha)} ha, terutama di ${f.properties.kawasan_terbakar}`) }).addTo(map);
   const r = DEL.ringkasan.find(x => x.tahun === y);
   $('legKej').innerHTML = `<div class="t">Kejadian ${y}${y === 2026 ? ' (area terbakar s.d. September)' : ''}</div>
@@ -488,6 +488,20 @@ async function showKej() {
 $('showKej').addEventListener('change', showKej); $('kejYear').addEventListener('change', showKej); $('showAsal').addEventListener('change', showKej);
 $('showKecB').addEventListener('change', e => { if (e.target.checked) { kecBatas.addTo(map); if (map.hasLayer(kabLayer)) kabLayer.bringToFront(); } else map.removeLayer(kecBatas); kecLabelsSync(); });
 $('showKec').addEventListener('change', e => { e.target.checked ? kecLayer.addTo(map) : map.removeLayer(kecLayer); kecLegend(); });
+// Kanvas titik (pane 'pts') menutupi kanvas poligon (pane 'vec'), sehingga klik pada poligon kecamatan dan kejadian
+// kebakaran tidak pernah sampai. Klik yang tidak mengenai titik diteruskan ke poligon di bawahnya.
+let popupKlikIni = false;
+map.on('preclick', () => { popupKlikIni = false; });
+map.on('popupopen', () => { popupKlikIni = true; });
+map.on('click', e => {
+  if (infoOn || popupKlikIni) return;   // mode info lokasi aktif, atau klik sudah membuka pop-up titik
+  const lp = map.latLngToLayerPoint(e.latlng);
+  for (const g of [kejLayer, kecLayer]) {
+    if (!g || !map.hasLayer(g)) continue;
+    let kena = null; g.eachLayer(l => { if (!kena && l._containsPoint && l._containsPoint(lp)) kena = l; });
+    if (kena) { kena.openPopup(e.latlng); return; }
+  }
+});
 function zoomKec(id) {
   kecLayer.addTo(map); $('showKec').checked = true; kecLegend();
   kecLayer.eachLayer(l => { if (l.feature.properties.id === id) { map.fitBounds(l.getBounds(), { maxZoom: 11 }); l.openPopup(); } });
@@ -582,7 +596,7 @@ setRaster('bahaya_' + MAIN, true);
 
 // ---------- vektor tambahan & titik historis (dimuat saat diperlukan) ----------
 function loadScript(src) { return new Promise((ok, err) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = err; document.head.appendChild(s); }); }
-const facLayer = L.featureGroup((window.FASILITAS || []).map(f => L.circleMarker([+f.lat, +f.lon], { pane: 'pts', radius: 5, color: '#1E1B18', weight: 1.2, fillColor: '#fff', fillOpacity: 1 })
+const facLayer = L.featureGroup((window.FASILITAS || []).map(f => L.circleMarker([+f.lat, +f.lon], { renderer: ptsRenderer, radius: 5, color: '#1E1B18', weight: 1.2, fillColor: '#fff', fillOpacity: 1 })
   .bindPopup(`<b>${f.nama || '(tanpa nama)'}</b><br>${f.jenis} · ${f.kabupaten}<br>Kelas bahaya: ${HAZN[f.kelas - 1]}`)));
 $('nFac').textContent = (window.FASILITAS || []).length;
 $('showFac').addEventListener('change', e => e.target.checked ? facLayer.addTo(map) : map.removeLayer(facLayer));
